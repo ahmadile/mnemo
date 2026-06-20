@@ -1,0 +1,80 @@
+// Cerebro - Gamified Learning Platform
+// Users submit course notes -> AI generates GTA-style missions -> Complete to birth virtual agents
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Curriculum {
+  id          String   @id @default(cuid())
+  name        String
+  domain      String   @unique // python, sql, ai-engineering, data-science, web-dev
+  description String
+  icon        String
+  color       String
+  xp          Int      @default(0)
+  level       Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  missions    Mission[]
+  agent       Agent?
+}
+
+model Mission {
+  id            String   @id @default(cuid())
+  curriculumId  String
+  curriculum    Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  title         String
+  briefing      String   // GTA-style narrative briefing
+  objectives    String   // JSON array of strings
+  starterCode   String   @default("")
+  hint          String   @default("")
+  difficulty    String   @default("rookie") // rookie | pro | elite
+  xp            Int      @default(100)
+  status        String   @default("active") // active | completed
+  sourceContent String   @default("") // The course content that generated this mission
+  language      String   @default("python") // The language the user must write code in
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  submissions   MissionSubmission[]
+}
+
+model MissionSubmission {
+  id          String   @id @default(cuid())
+  missionId   String
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  code        String
+  feedback    String   @default("")
+  passed      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Agent {
+  id            String   @id @default(cuid())
+  curriculumId  String   @unique
+  curriculum    Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  name          String
+  persona       String   // AI system prompt that defines the agent's voice and knowledge
+  skills        String   // JSON array of skills mastered
+  totalXp       Int      @default(0)
+  level         Int      @default(1)
+  status        String   @default("idle") // idle | working | interviewing | relaxing
+  activity      String   @default("En attente d'instructions") // human-readable current activity
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  conversations AgentConversation[]
+}
+
+model AgentConversation {
+  id          String   @id @default(cuid())
+  agentId     String
+  agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  role        String   // "user" | "agent"
+  content     String
+  createdAt   DateTime @default(now())
+}
