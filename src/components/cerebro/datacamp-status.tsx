@@ -105,18 +105,29 @@ export function DatacampStatus() {
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-semibold text-zinc-200 mb-2">1. Télécharger</h3>
-                <a
-                  href="/download/mnemo-datacamp-extension/README.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-sm font-semibold"
-                >
-                  <Download className="w-4 h-4" />
-                  Télécharger le dossier extension
-                </a>
+                <h3 className="text-sm font-semibold text-zinc-200 mb-2">1. Télécharger l'extension</h3>
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href="/mnemo-datacamp-extension.zip"
+                    download
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-sm font-semibold"
+                  >
+                    <Download className="w-4 h-4" />
+                    Télécharger le ZIP
+                  </a>
+                  <a
+                    href="/mnemo-datacamp-extension/README.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-zinc-700 hover:bg-zinc-800/50 text-zinc-300 text-sm font-medium"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Voir le README
+                  </a>
+                </div>
                 <p className="text-[11px] text-zinc-500 mt-2">
-                  Le dossier contient manifest.json, popup, content script et icônes.
+                  ZIP de 11 KB contenant manifest.json, popup, content script, icônes et README.
+                  Décompressez-le puis chargez le dossier dans Chrome.
                 </p>
               </div>
 
