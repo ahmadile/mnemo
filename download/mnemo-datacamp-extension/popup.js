@@ -83,65 +83,83 @@ captureBtn.addEventListener('click', async () => {
   captureBtn.textContent = 'Capture en cours...'
 
   try {
+    // Check if chrome.scripting is available (requires "scripting" permission)
+    if (!chrome.scripting) {
+      showToast('Permission "scripting" manquante. Rechargez l\'extension.', true)
+      captureBtn.disabled = false
+      captureBtn.textContent = 'Capturer & Envoyer'
+      return
+    }
+
     // Get active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
 
+    if (!tab || !tab.id) {
+      showToast('Aucun onglet actif trouvé', true)
+      captureBtn.disabled = false
+      captureBtn.textContent = 'Capturer & Envoyer'
+      return
+    }
+
     // Inject content script to extract content
-    chrome.scripting.executeScript({
+    const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       function: extractDataCampContent,
-    }, async (results) => {
-      if (!results || !results[0]) {
-        showToast('Erreur d\'extraction', true)
-        captureBtn.disabled = false
-        captureBtn.textContent = 'Capturer & Envoyer'
-        return
-      }
-
-      const content = results[0].result
-      if (!content || content.length < 50) {
-        showToast('Contenu trop court. Êtes-vous sur un exercice ou un cours ?', true)
-        captureBtn.disabled = false
-        captureBtn.textContent = 'Capturer & Envoyer'
-        return
-      }
-
-      // Show preview
-      preview.style.display = 'block'
-      preview.textContent = content.slice(0, 400) + '...'
-
-      // Send to Mnemo
-      const url = serverUrlInput.value.replace(/\/$/, '')
-      const curriculumId = curriculumSelect.value
-      if (!curriculumId) {
-        showToast('Sélectionnez un cursus cible', true)
-        captureBtn.disabled = false
-        captureBtn.textContent = 'Capturer & Envoyer'
-        return
-      }
-
-      const res = await fetch(`${url}/api/missions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          curriculumId,
-          courseContent: content,
-          courseLink: tab.url,
-        }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Erreur lors de la génération')
-
-      showToast(`Mission générée: ${data.mission.title}`)
-
-      // Open Mnemo in new tab on the mission
-      chrome.tabs.create({ url: `${url}/?mission=${data.mission.id}` })
-
-      setTimeout(() => window.close(), 1500)
     })
+
+    if (!results || !results[0]) {
+      showToast('Erreur d\'extraction. Rechargez la page DataCamp.', true)
+      captureBtn.disabled = false
+      captureBtn.textContent = 'Capturer & Envoyer'
+      return
+    }
+
+    const content = results[0].result
+    if (!content || content.length < 50) {
+      showToast('Contenu trop court. Êtes-vous sur un exercice ou un cours ?', true)
+      captureBtn.disabled = false
+      captureBtn.textContent = 'Capturer & Envoyer'
+      return
+    }
+
+    // Show preview
+    preview.style.display = 'block'
+    preview.textContent = content.slice(0, 400) + '...'
+
+    // Send to Mnemo
+    const url = serverUrlInput.value.replace(/\/$/, '')
+    const curriculumId = curriculumSelect.value
+    if (!curriculumId) {
+      showToast('Sélectionnez un cursus cible', true)
+      captureBtn.disabled = false
+      captureBtn.textContent = 'Capturer & Envoyer'
+      return
+    }
+
+    captureBtn.textContent = 'Génération de la mission...'
+
+    const res = await fetch(`${url}/api/missions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        curriculumId,
+        courseContent: content,
+        courseLink: tab.url,
+      }),
+    })
+
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Erreur lors de la génération')
+
+    showToast(`Mission générée: ${data.mission.title}`)
+
+    // Open Mnemo in new tab on the mission
+    chrome.tabs.create({ url: `${url}/?mission=${data.mission.id}` })
+
+    setTimeout(() => window.close(), 1500)
   } catch (e) {
-    showToast(e.message, true)
+    console.error('[Mnemo Bridge] Capture error:', e)
+    showToast(e.message || 'Erreur inconnue', true)
     captureBtn.disabled = false
     captureBtn.textContent = 'Capturer & Envoyer'
   }

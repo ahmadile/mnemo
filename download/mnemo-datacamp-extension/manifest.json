@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Mnemo · DataCamp Bridge",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Capturez le contenu de vos cours DataCamp et envoyez-le directement dans Mnemo pour générer des missions.",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "scripting"],
   "host_permissions": [
     "https://app.datacamp.com/*",
     "https://www.datacamp.com/*",
