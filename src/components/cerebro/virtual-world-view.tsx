@@ -5,7 +5,6 @@ import { useUI } from '@/store/ui'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { generateAvatarPng } from '@/components/cerebro/avatar'
 import {
   ArrowLeft,
   Gamepad2,
@@ -18,6 +17,17 @@ import {
   Keyboard,
 } from 'lucide-react'
 import { toast } from 'sonner'
+
+// Emoji characters for characters in the 2D world
+// Each NPC gets a character emoji based on their kind/domain
+const NPC_EMOJIS: Record<string, string> = {
+  'quest-giver': '🧙‍♂️',  // wizard for quest giver
+  'npc-1': '🧝‍♂️',       // elf sage
+  'npc-2': '🧑‍🏫',       // teacher mentor
+  'npc-3': '📚',         // archive books
+}
+const AGENT_EMOJIS = ['🤖', '🦾', '🧠', '👁️', '🦿']  // for AI agents
+const PLAYER_EMOJI = '🧑‍🚀'  // astronaut = explorer
 
 // Phaser is loaded dynamically on client-side only
 // (it uses `window` and shouldn't be SSR'd)
@@ -94,6 +104,8 @@ export function VirtualWorldView() {
         player!: Phaser.GameObjects.Container
         playerCircle!: Phaser.GameObjects.Arc
         playerLabel!: Phaser.GameObjects.Text
+        playerEmoji!: Phaser.GameObjects.Text
+        playerShadow!: Phaser.GameObjects.Ellipse
         npcObjects: Map<string, { container: Phaser.GameObjects.Container; circle: Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text; data: Npc }> = new Map()
         cursors!: Phaser.Types.Input.Keyboard.CursorKeys
         wasd!: Record<string, Phaser.Input.Keyboard.Key>
@@ -105,27 +117,8 @@ export function VirtualWorldView() {
           super({ key: 'mnemo' })
         }
 
-        async preload() {
-          // Generate DiceBear avatars as PNG textures
-          // Player avatar
-          try {
-            const playerPng = await generateAvatarPng('player-mnemo', undefined, 64)
-            this.textures.addBase64('avatar-player', playerPng)
-            await new Promise((r) => this.textures.once('addtexture', r))
-          } catch (e) {
-            console.warn('[Mnemo] Failed to load player avatar:', e)
-          }
-
-          // NPC avatars
-          for (const npc of npcs) {
-            try {
-              const png = await generateAvatarPng(npc.id, npc.domain, 64)
-              this.textures.addBase64(`avatar-${npc.id}`, png)
-              await new Promise((r) => this.textures.once('addtexture', r))
-            } catch (e) {
-              console.warn(`[Mnemo] Failed to load avatar for ${npc.id}:`, e)
-            }
-          }
+        preload() {
+          // No external assets to load — we use emoji text as characters
         }
 
         create() {
@@ -184,34 +177,50 @@ export function VirtualWorldView() {
             this.createNpc(npc)
           })
 
-          // --- Player ---
+          // --- Player (emoji character with walk animation) ---
           this.player = this.add.container(W / 2, H / 2)
-          // Shadow
-          const shadow = this.add.ellipse(0, 18, 32, 10, 0x000000, 0.4)
-          // Avatar (DiceBear texture) or fallback circle
-          let playerBody: Phaser.GameObjects.GameObject
-          if (this.textures.exists('avatar-player')) {
-            const img = this.add.image(0, 0, 'avatar-player')
-            img.setDisplaySize(36, 36)
-            // White ring around avatar
-            const ring = this.add.circle(0, 0, 20, 0x000000, 0)
-            ring.setStrokeStyle(2, 0x10b981, 1)
-            this.player.add(ring)
-            playerBody = img
-          } else {
-            this.playerCircle = this.add.circle(0, 0, 18, 0x10b981, 1)
-            this.playerCircle.setStrokeStyle(2, 0xffffff)
-            playerBody = this.playerCircle
-          }
+          // Shadow (animated, scales with bobbing)
+          const playerShadow = this.add.ellipse(0, 22, 36, 12, 0x000000, 0.5)
+          // Glow ring (emerald)
+          const playerRing = this.add.circle(0, 0, 24, 0x10b981, 0.15)
+          playerRing.setStrokeStyle(2, 0x10b981, 0.8)
+          // Emoji character
+          const playerEmoji = this.add.text(0, 0, PLAYER_EMOJI, {
+            fontFamily: 'sans-serif',
+            fontSize: '36px',
+          }).setOrigin(0.5)
           // Label
-          this.playerLabel = this.add.text(0, -30, 'VOUS', {
+          this.playerLabel = this.add.text(0, -32, 'VOUS', {
             fontFamily: 'sans-serif',
             fontSize: '11px',
             color: '#10b981',
             fontStyle: 'bold',
           }).setOrigin(0.5)
 
-          this.player.add([shadow, playerBody, this.playerLabel])
+          this.player.add([playerShadow, playerRing, playerEmoji, this.playerLabel])
+          this.playerShadow = playerShadow
+          this.playerEmoji = playerEmoji
+
+          // Idle bobbing animation
+          this.tweens.add({
+            targets: playerEmoji,
+            y: { from: -2, to: 2 },
+            duration: 800,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut',
+          })
+          // Shadow pulse with bob
+          this.tweens.add({
+            targets: playerShadow,
+            scaleX: { from: 1, to: 0.85 },
+            scaleY: { from: 1, to: 0.85 },
+            alpha: { from: 0.5, to: 0.3 },
+            duration: 800,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut',
+          })
 
           // Aura (pulsing)
           const aura = this.add.circle(W / 2, H / 2, 28, 0x10b981, 0.15)
@@ -270,42 +279,78 @@ export function VirtualWorldView() {
 
         createNpc(npc: Npc) {
           const container = this.add.container(npc.x, npc.y)
-          // Shadow
-          const shadow = this.add.ellipse(0, 14, 26, 8, 0x000000, 0.4)
           const isQuestGiver = npc.kind === 'quest-giver'
           const colorNum = parseInt(npc.color.replace('#', ''), 16)
 
-          // Body: DiceBear avatar texture if available, else colored circle
-          let body: Phaser.GameObjects.GameObject
-          const avatarKey = `avatar-${npc.id}`
-          if (this.textures.exists(avatarKey)) {
-            const img = this.add.image(0, 0, avatarKey)
-            img.setDisplaySize(32, 32)
-            img.setInteractive({ useHandCursor: true })
-            img.setData('npcId', npc.id)
-            // Ring around avatar
-            const ring = this.add.circle(0, 0, 18, 0x000000, 0)
-            ring.setStrokeStyle(isQuestGiver ? 2 : 1.5, isQuestGiver ? 0xfbbf24 : colorNum)
+          // Shadow (animated)
+          const shadow = this.add.ellipse(0, 20, 30, 10, 0x000000, 0.5)
+
+          // Glow ring for agents
+          if (npc.kind === 'agent') {
+            const ring = this.add.circle(0, 0, 22, colorNum, 0.1)
+            ring.setStrokeStyle(2, colorNum, 0.6)
             container.add(ring)
-            body = img
-          } else {
-            // Fallback: colored circle
-            const circle = this.add.circle(0, 0, 14, colorNum, 1)
-            circle.setStrokeStyle(isQuestGiver ? 2 : 1, isQuestGiver ? 0xfbbf24 : 0xffffff)
-            circle.setInteractive({ useHandCursor: true })
-            circle.setData('npcId', npc.id)
-            // Letter
-            const letter = this.add.text(0, 0, npc.name.charAt(0).toUpperCase(), {
-              fontFamily: 'sans-serif',
-              fontSize: '13px',
-              color: '#0a0a0a',
-              fontStyle: 'bold',
-            }).setOrigin(0.5)
-            container.add(letter)
-            body = circle
+            // Rotating dashed ring
+            const dashRing = this.add.circle(0, 0, 26, 0x000000, 0)
+            dashRing.setStrokeStyle(1, colorNum, 0.4)
+            this.tweens.add({
+              targets: dashRing,
+              angle: 360,
+              duration: 8000,
+              repeat: -1,
+            })
+            container.add(dashRing)
+          } else if (isQuestGiver) {
+            const ring = this.add.circle(0, 0, 22, 0xfbbf24, 0.1)
+            ring.setStrokeStyle(2, 0xfbbf24, 0.6)
+            container.add(ring)
           }
+
+          // Pick emoji based on NPC type
+          let emoji = NPC_EMOJIS[npc.id]
+          if (!emoji) {
+            if (npc.kind === 'agent') {
+              // Use domain-specific agent emoji
+              const agentIdx = (npc.id.charCodeAt(0) || 0) % AGENT_EMOJIS.length
+              emoji = AGENT_EMOJIS[agentIdx]
+            } else {
+              emoji = '🧑'
+            }
+          }
+
+          // Emoji character (interactive)
+          const emojiText = this.add.text(0, 0, emoji, {
+            fontFamily: 'sans-serif',
+            fontSize: '32px',
+          }).setOrigin(0.5)
+          emojiText.setInteractive({ useHandCursor: true })
+          emojiText.setData('npcId', npc.id)
+
+          // Idle bobbing animation (different phase per NPC)
+          const bobDelay = Math.random() * 1000
+          this.tweens.add({
+            targets: emojiText,
+            y: { from: -2, to: 2 },
+            duration: 1000 + Math.random() * 500,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut',
+            delay: bobDelay,
+          })
+          // Shadow sync
+          this.tweens.add({
+            targets: shadow,
+            scaleX: { from: 1, to: 0.85 },
+            alpha: { from: 0.5, to: 0.3 },
+            duration: 1000 + Math.random() * 500,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut',
+            delay: bobDelay,
+          })
+
           // Name label
-          const label = this.add.text(0, -24, npc.name, {
+          const label = this.add.text(0, -28, npc.name, {
             fontFamily: 'sans-serif',
             fontSize: '10px',
             color: '#ffffff',
@@ -339,8 +384,8 @@ export function VirtualWorldView() {
             container.add(questMark)
           }
 
-          container.add([shadow, body, label])
-          this.npcObjects.set(npc.id, { container, circle: body as any, label, data: npc })
+          container.add([shadow, emojiText, label])
+          this.npcObjects.set(npc.id, { container, circle: emojiText as any, label, data: npc })
 
           // Wander behavior: tween to random nearby position
           this.scheduleWander(npc.id)
@@ -449,13 +494,35 @@ export function VirtualWorldView() {
           if (this.cursors.left.isDown || this.wasd.left.isDown) dx -= 1
           if (this.cursors.right.isDown || this.wasd.right.isDown) dx += 1
 
-          if (dx !== 0 || dy !== 0) {
+          const isMoving = dx !== 0 || dy !== 0
+
+          if (isMoving) {
             // Normalize
             const len = Math.sqrt(dx * dx + dy * dy)
             dx = (dx / len) * speed
             dy = (dy / len) * speed
             this.player.x = Phaser.Math.Clamp(this.player.x + dx, 20, GAME_W - 20)
             this.player.y = Phaser.Math.Clamp(this.player.y + dy, 20, GAME_H - 20)
+
+            // Walking animation: tilt emoji in movement direction
+            if (this.playerEmoji) {
+              const tilt = dx * 0.02
+              this.playerEmoji.setRotation(tilt)
+              // Bounce effect while walking
+              const bounce = Math.sin(this.time.now / 80) * 3
+              this.playerEmoji.y = bounce
+            }
+            // Shadow shrinks slightly when "in air"
+            if (this.playerShadow) {
+              const bounce = Math.abs(Math.sin(this.time.now / 80))
+              this.playerShadow.setScale(1 - bounce * 0.2)
+              this.playerShadow.setAlpha(0.5 - bounce * 0.2)
+            }
+          } else {
+            // Idle: reset rotation, let the idle tween handle bobbing
+            if (this.playerEmoji) {
+              this.playerEmoji.setRotation(0)
+            }
           }
 
           // Check nearby NPC

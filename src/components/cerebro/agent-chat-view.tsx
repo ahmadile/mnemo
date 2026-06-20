@@ -107,7 +107,8 @@ export function AgentChatView() {
     )
 
     try {
-      const res = await fetch(`/api/agents/${agentId}/chat`, {
+      // Use the new Mastra-powered memory endpoint
+      const res = await fetch(`/api/agent-memory/${agentId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: msg }),
