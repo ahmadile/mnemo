@@ -5,6 +5,9 @@ import { db } from '../src/lib/db'
 async function main() {
   console.log('RESET TOTAL - suppression de toutes les données...')
 
+  const deletedQuests = await db.dailyQuest.deleteMany({})
+  console.log(`  Deleted ${deletedQuests.count} daily quests`)
+
   const deletedConvos = await db.agentConversation.deleteMany({})
   console.log(`  Deleted ${deletedConvos.count} conversations`)
 

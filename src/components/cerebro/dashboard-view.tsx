@@ -1,23 +1,25 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useUI } from '@/store/ui'
 import { Card } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 import { DatacampStatus } from '@/components/cerebro/datacamp-status'
 import { CreateCurriculumDialog } from '@/components/cerebro/create-curriculum-dialog'
 import {
   Brain,
-  Database,
-  Cpu,
-  ChartLine,
-  Code2,
   ChevronRight,
   Sparkles,
   Target,
   Users,
   Plus,
+  MapPin,
+  Compass,
+  Crown,
+  Zap,
+  CheckCircle2,
+  Flame,
 } from 'lucide-react'
 
 interface Mission {
@@ -45,35 +47,50 @@ interface Curriculum {
   color: string
   xp: number
   level: number
+  isCustom?: boolean
+  language?: string
+  datacampUrl?: string | null
+  datacampProgress?: number
+  completedCourses?: string
   missions: Mission[]
   agent: Agent | null
 }
 
-const iconMap: Record<string, any> = {
-  python: Code2,
-  database: Database,
-  'brain-circuit': Cpu,
-  'chart-line': ChartLine,
-  code: Code2,
+interface DailyQuest {
+  id: string
+  title: string
+  description: string
+  xpReward: number
+  status: 'pending' | 'completed'
+  type: string
 }
 
-const domainEmojis: Record<string, string> = {
-  python: 'PY',
-  sql: 'SQL',
-  'ai-engineering': 'AI',
-  'data-science': 'DS',
-  'web-dev': 'WEB',
+// Positions on the fantasy map (percentage of viewBox 1000x650)
+const MAP_POSITIONS: Record<string, { x: number; y: number; size: number }> = {
+  // Default 5 positions for first 5 curricula
+  default: [
+    { x: 200, y: 180, size: 1.0 },   // top-left (Python)
+    { x: 800, y: 180, size: 1.0 },   // top-right (SQL)
+    { x: 500, y: 350, size: 1.2 },   // center (IA - bigger, more important)
+    { x: 200, y: 500, size: 1.0 },   // bottom-left (Data)
+    { x: 800, y: 500, size: 1.0 },   // bottom-right (Web)
+  ],
 }
 
 export function DashboardView() {
   const [curricula, setCurricula] = useState<Curriculum[]>([])
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
+  const [dailyQuests, setDailyQuests] = useState<DailyQuest[]>([])
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
   const openCurriculum = useUI((s) => s.openCurriculum)
   const openAgents = useUI((s) => s.openAgents)
 
   useEffect(() => {
     refresh()
+    loadDailyQuests()
   }, [])
 
   async function refresh() {
@@ -87,132 +104,476 @@ export function DashboardView() {
     }
   }
 
+  async function loadDailyQuests() {
+    try {
+      const res = await fetch('/api/daily-quests')
+      const data = await res.json()
+      setDailyQuests(data.quests || [])
+    } catch {
+      // silent
+    }
+  }
+
   const totalAgents = curricula.filter((c) => c.agent).length
   const totalMissions = curricula.reduce((sum, c) => sum + c.missions.length, 0)
   const completedMissions = curricula.reduce(
     (sum, c) => sum + c.missions.filter((m) => m.status === 'completed').length,
     0
   )
+  const totalXp = curricula.reduce((sum, c) => sum + c.xp, 0)
+
+  // Compute positions for all curricula
+  const positionedCurricula = useMemo(() => {
+    return curricula.map((c, i) => {
+      const pos = MAP_POSITIONS.default[i % MAP_POSITIONS.default.length]
+      return { ...c, position: pos }
+    })
+  }, [curricula])
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto relative">
       {/* DataCamp status banner */}
       <DatacampStatus />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden rounded-xl border border-zinc-800/60 bg-gradient-to-br from-zinc-900 via-zinc-900/50 to-zinc-950 p-6 md:p-8">
-        <div className="absolute -top-12 -right-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs uppercase tracking-[0.2em] text-emerald-400 font-semibold">
-              Bienvenue dans votre monde virtuel
-            </span>
+      {/* Daily quests */}
+      {dailyQuests.length > 0 && (
+        <Card className="relative overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent p-5 backdrop-blur-xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
+                  <Flame className="w-4 h-4 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm">Quêtes quotidiennes</h3>
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
+                    Révisez chaque jour pour ancrer vos acquis
+                  </p>
+                </div>
+              </div>
+              <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40">
+                {dailyQuests.filter((q) => q.status === 'completed').length}/{dailyQuests.length} terminées
+              </Badge>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {dailyQuests.map((quest) => (
+                <div
+                  key={quest.id}
+                  className={`flex items-center gap-2 p-2.5 rounded-lg border ${
+                    quest.status === 'completed'
+                      ? 'border-emerald-500/30 bg-emerald-500/5'
+                      : 'border-white/10 bg-white/5'
+                  }`}
+                >
+                  {quest.status === 'completed' ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full border-2 border-amber-500/40 flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className={`text-xs font-medium truncate ${quest.status === 'completed' ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>
+                      {quest.title}
+                    </div>
+                    <div className="text-[10px] text-amber-400">+{quest.xpReward} XP</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-3 max-w-3xl">
-            Chaque cours que vous révisez devient une mission.
-            <br />
-            <span className="text-zinc-500">Chaque cursus terminé devient un agent-mémoire.</span>
-          </h1>
-          <p className="text-sm md:text-base text-zinc-400 max-w-2xl leading-relaxed">
-            Collez un lien DataCamp, une URL de cours ou vos notes. Mnemo génère un
-            défi de codage style GTA spécifique au chapitre étudié. Complétez les
-            missions pour gagner de l'XP et donner naissance à des agents-mémoires
-            - votre mémoire virtuelle dans chaque domaine, que vous pouvez réveiller
-            à tout moment pour réviser.
-          </p>
+        </Card>
+      )}
 
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatBox label="Cursus actifs" value={curricula.length} icon={<Brain className="w-4 h-4" />} />
-            <StatBox label="Missions générées" value={totalMissions} icon={<Target className="w-4 h-4" />} />
-            <StatBox label="Missions complétées" value={completedMissions} icon={<Sparkles className="w-4 h-4" />} />
-            <StatBox label="Agents nés" value={totalAgents} icon={<Users className="w-4 h-4" />} />
-          </div>
-        </div>
-      </section>
-
-      {/* Curricula grid */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-bold">Territoires</h2>
-            <p className="text-xs text-zinc-500">
-              Cliquez un territoire pour soumettre un cours ou voir les missions
+      {/* Fantasy Map */}
+      <Card className="relative overflow-hidden border-white/10 bg-zinc-950/60 backdrop-blur-xl p-0">
+        {/* Map header */}
+        <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
+          <div className="pointer-events-auto">
+            <div className="flex items-center gap-2 mb-1">
+              <Compass className="w-4 h-4 text-emerald-400" />
+              <h2 className="font-bold text-sm text-zinc-100">Carte du Monde Mnemo</h2>
+            </div>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
+              {curricula.length} territoire{curricula.length > 1 ? 's' : ''} · {totalAgents} agent{totalAgents > 1 ? 's' : ''} né{totalAgents > 1 ? 's' : ''}
             </p>
           </div>
           <button
             onClick={() => setCreateOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition-colors"
+            className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition-colors backdrop-blur-sm"
           >
             <Plus className="w-3.5 h-3.5" />
             Nouveau cursus
           </button>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="p-6 h-48 animate-pulse bg-zinc-900/40 border-zinc-800" />
-            ))}
-          </div>
-        ) : curricula.length === 0 ? (
-          <Card className="p-8 border-dashed border-zinc-700 bg-zinc-900/20 text-center">
-            <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
-              <Sparkles className="w-7 h-7 text-emerald-400" />
-            </div>
-            <h3 className="font-bold text-zinc-200 mb-2">Aucun cursus pour l'instant</h3>
-            <p className="text-xs text-zinc-500 max-w-md mx-auto mb-5 leading-relaxed">
-              Deux façons de commencer : installez l'extension Chrome pour capturer automatiquement
-              vos cours DataCamp, ou créez manuellement un cursus personnalisé.
-            </p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              <button
-                onClick={() => setCreateOpen(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-semibold"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Créer un cursus
-              </button>
-            </div>
-            <p className="text-[10px] text-zinc-600 mt-4">
-              Astuce : utilisez l'extension Chrome en haut de cette page pour importer vos cours DataCamp automatiquement.
-            </p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {curricula.map((c) => (
-              <CurriculumCard key={c.id} curriculum={c} onOpen={() => openCurriculum(c.id)} />
-            ))}
-            {/* Add new curriculum card */}
-            <button
-              onClick={() => setCreateOpen(true)}
-              className="group text-left w-full"
-            >
-              <Card className="border-dashed border-zinc-700 bg-zinc-900/20 hover:bg-zinc-900/40 hover:border-emerald-500/40 transition-all p-5 h-full flex items-center justify-center min-h-[180px]">
-                <div className="text-center">
-                  <div className="w-10 h-10 rounded-lg bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-center mx-auto mb-2 group-hover:bg-emerald-500/10 group-hover:border-emerald-500/30 transition-colors">
-                    <Plus className="w-5 h-5 text-zinc-500 group-hover:text-emerald-400" />
-                  </div>
-                  <p className="text-xs text-zinc-500 group-hover:text-zinc-300">
-                    Créer un cursus personnalisé
-                  </p>
-                </div>
-              </Card>
-            </button>
-          </div>
-        )}
-      </section>
+        {/* SVG map */}
+        <div className="relative w-full" style={{ aspectRatio: '1000/650' }}>
+          <svg
+            viewBox="0 0 1000 650"
+            className="w-full h-full"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            <defs>
+              {/* Gradients per region color */}
+              <radialGradient id="grad-center" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.15" />
+                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+              </radialGradient>
+              {/* Grid pattern */}
+              <pattern id="map-grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#27272a" strokeWidth="0.5" />
+              </pattern>
+              {/* Glow filter */}
+              <filter id="node-glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
 
-      {/* Agents preview */}
+            {/* Background */}
+            <rect width="1000" height="650" fill="#0a0a0a" />
+            <rect width="1000" height="650" fill="url(#map-grid)" opacity="0.5" />
+
+            {/* Central plaza glow */}
+            <circle cx="500" cy="325" r="250" fill="url(#grad-center)" />
+
+            {/* Decorative paths between nodes (roads) */}
+            {positionedCurricula.length > 1 && positionedCurricula.map((c, i) => {
+              if (i === positionedCurricula.length - 1) return null
+              const next = positionedCurricula[(i + 1) % positionedCurricula.length]
+              return (
+                <line
+                  key={`path-${c.id}`}
+                  x1={c.position.x}
+                  y1={c.position.y}
+                  x2={next.position.x}
+                  y2={next.position.y}
+                  stroke="#27272a"
+                  strokeWidth="2"
+                  strokeDasharray="6 6"
+                  opacity="0.6"
+                />
+              )
+            })}
+
+            {/* Path from center to each node */}
+            {positionedCurricula.map((c) => (
+              <line
+                key={`center-path-${c.id}`}
+                x1="500"
+                y1="325"
+                x2={c.position.x}
+                y2={c.position.y}
+                stroke={c.color}
+                strokeWidth="1"
+                strokeDasharray="3 4"
+                opacity="0.3"
+              />
+            ))}
+
+            {/* Center: YOU */}
+            <g>
+              <circle cx="500" cy="325" r="45" fill="#0a0a0a" stroke="#10b981" strokeWidth="2" filter="url(#node-glow)" />
+              <circle cx="500" cy="325" r="60" fill="none" stroke="#10b981" strokeWidth="0.5" opacity="0.4">
+                <animate attributeName="r" from="45" to="80" dur="3s" repeatCount="indefinite" />
+                <animate attributeName="opacity" from="0.5" to="0" dur="3s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="500" cy="325" r="60" fill="none" stroke="#10b981" strokeWidth="0.5" opacity="0.3">
+                <animate attributeName="r" from="45" to="80" dur="3s" begin="1.5s" repeatCount="indefinite" />
+                <animate attributeName="opacity" from="0.4" to="0" dur="3s" begin="1.5s" repeatCount="indefinite" />
+              </circle>
+              <text x="500" y="322" textAnchor="middle" fill="#10b981" fontSize="13" fontWeight="700" fontFamily="sans-serif">
+                VOUS
+              </text>
+              <text x="500" y="338" textAnchor="middle" fill="#a1a1aa" fontSize="9" fontFamily="sans-serif">
+                {totalXp} XP · Niv {Math.floor(totalXp / 500) + 1}
+              </text>
+            </g>
+
+            {/* Curriculum nodes */}
+            {positionedCurricula.map((c) => {
+              const r = (c.agent ? 36 : 28) * c.position.size
+              const isHovered = hoveredId === c.id
+              const isSelected = selectedId === c.id
+              const completed = c.missions.filter((m) => m.status === 'completed').length
+              const total = c.missions.length
+              const dcProgress = c.datacampProgress || 0
+              return (
+                <g
+                  key={c.id}
+                  className="cursor-pointer transition-all"
+                  onClick={() => {
+                    setSelectedId(c.id)
+                    openCurriculum(c.id)
+                  }}
+                  onMouseEnter={() => setHoveredId(c.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  style={{ transformOrigin: `${c.position.x}px ${c.position.y}px` }}
+                >
+                  {/* Hover glow */}
+                  {(isHovered || isSelected) && (
+                    <circle
+                      cx={c.position.x}
+                      cy={c.position.y}
+                      r={r + 15}
+                      fill={c.color}
+                      opacity="0.15"
+                    />
+                  )}
+
+                  {/* Agent ring (rotating) */}
+                  {c.agent && (
+                    <circle
+                      cx={c.position.x}
+                      cy={c.position.y}
+                      r={r + 8}
+                      fill="none"
+                      stroke={c.color}
+                      strokeWidth="1.5"
+                      strokeDasharray="4 3"
+                      opacity="0.6"
+                    >
+                      <animateTransform
+                        attributeName="transform"
+                        type="rotate"
+                        from={`0 ${c.position.x} ${c.position.y}`}
+                        to={`360 ${c.position.x} ${c.position.y}`}
+                        dur="25s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  )}
+
+                  {/* Main node */}
+                  <circle
+                    cx={c.position.x}
+                    cy={c.position.y}
+                    r={r}
+                    fill="#0a0a0a"
+                    stroke={c.color}
+                    strokeWidth={c.agent ? 2.5 : 1.5}
+                    style={{
+                      transition: 'all 0.3s',
+                      filter: isHovered ? `drop-shadow(0 0 12px ${c.color}80)` : 'none',
+                    }}
+                  />
+
+                  {/* Inner gradient */}
+                  <circle
+                    cx={c.position.x}
+                    cy={c.position.y}
+                    r={r - 4}
+                    fill={c.color}
+                    opacity="0.1"
+                  />
+
+                  {/* Curriculum icon (initials) */}
+                  <text
+                    x={c.position.x}
+                    y={c.position.y - 2}
+                    textAnchor="middle"
+                    fill={c.color}
+                    fontSize={r > 30 ? "14" : "11"}
+                    fontWeight="700"
+                    fontFamily="sans-serif"
+                  >
+                    {c.name.slice(0, 8).toUpperCase()}
+                  </text>
+
+                  {/* Level/agent info */}
+                  <text
+                    x={c.position.x}
+                    y={c.position.y + 14}
+                    textAnchor="middle"
+                    fill={c.agent ? "#a1a1aa" : "#52525b"}
+                    fontSize="9"
+                    fontFamily="sans-serif"
+                  >
+                    {c.agent ? `${c.agent.name}` : `Niv ${c.level}`}
+                  </text>
+
+                  {/* Status dot (top-right of node) */}
+                  {c.agent && (
+                    <circle
+                      cx={c.position.x + r - 4}
+                      cy={c.position.y - r + 4}
+                      r="4"
+                      fill="#10b981"
+                    >
+                      <animate attributeName="opacity" from="1" to="0.3" dur="1.5s" repeatCount="indefinite" />
+                    </circle>
+                  )}
+
+                  {/* DataCamp progress ring (if has datacamp progress) */}
+                  {dcProgress > 0 && (
+                    <circle
+                      cx={c.position.x}
+                      cy={c.position.y}
+                      r={r + 4}
+                      fill="none"
+                      stroke={c.color}
+                      strokeWidth="2"
+                      strokeDasharray={`${(dcProgress / 100) * 2 * Math.PI * (r + 4)} ${2 * Math.PI * (r + 4)}`}
+                      strokeLinecap="round"
+                      transform={`rotate(-90 ${c.position.x} ${c.position.y})`}
+                      opacity="0.7"
+                    />
+                  )}
+
+                  {/* Label below node */}
+                  <text
+                    x={c.position.x}
+                    y={c.position.y + r + 16}
+                    textAnchor="middle"
+                    fill={isHovered ? c.color : "#71717a"}
+                    fontSize="10"
+                    fontFamily="sans-serif"
+                    fontWeight={isHovered ? "600" : "400"}
+                  >
+                    {c.name}
+                  </text>
+                  <text
+                    x={c.position.x}
+                    y={c.position.y + r + 28}
+                    textAnchor="middle"
+                    fill="#52525b"
+                    fontSize="9"
+                    fontFamily="sans-serif"
+                  >
+                    {completed}/{total} missions{dcProgress > 0 ? ` · ${dcProgress}% DC` : ''}
+                  </text>
+                </g>
+              )
+            })}
+
+            {/* Add new cursus node (+) */}
+            {curricula.length < 8 && (
+              <g
+                className="cursor-pointer"
+                onClick={() => setCreateOpen(true)}
+                onMouseEnter={() => setHoveredId('new')}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                <circle
+                  cx={curricula.length === 0 ? 500 : 500}
+                  cy={curricula.length === 0 ? 200 : 200}
+                  r="22"
+                  fill="#0a0a0a"
+                  stroke="#3f3f46"
+                  strokeWidth="1.5"
+                  strokeDasharray="4 4"
+                  opacity={hoveredId === 'new' ? 1 : 0.6}
+                />
+                <text
+                  x={curricula.length === 0 ? 500 : 500}
+                  y={curricula.length === 0 ? 207 : 207}
+                  textAnchor="middle"
+                  fill={hoveredId === 'new' ? '#10b981' : '#52525b'}
+                  fontSize="22"
+                  fontFamily="sans-serif"
+                >
+                  +
+                </text>
+                <text
+                  x={curricula.length === 0 ? 500 : 500}
+                  y={curricula.length === 0 ? 245 : 245}
+                  textAnchor="middle"
+                  fill="#52525b"
+                  fontSize="9"
+                  fontFamily="sans-serif"
+                >
+                  Nouveau cursus
+                </text>
+              </g>
+            )}
+
+            {/* Compass rose (decorative, bottom-right) */}
+            <g transform="translate(920, 570)" opacity="0.4">
+              <circle cx="0" cy="0" r="30" fill="none" stroke="#3f3f46" strokeWidth="0.5" />
+              <path d="M 0 -25 L 5 0 L 0 25 L -5 0 Z" fill="#10b981" opacity="0.6" />
+              <text x="0" y="-30" textAnchor="middle" fill="#52525b" fontSize="8" fontFamily="sans-serif">N</text>
+              <text x="0" y="38" textAnchor="middle" fill="#52525b" fontSize="8" fontFamily="sans-serif">S</text>
+              <text x="35" y="3" textAnchor="middle" fill="#52525b" fontSize="8" fontFamily="sans-serif">E</text>
+              <text x="-35" y="3" textAnchor="middle" fill="#52525b" fontSize="8" fontFamily="sans-serif">O</text>
+            </g>
+          </svg>
+
+          {/* Loading overlay */}
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/60 backdrop-blur-sm">
+              <div className="flex items-center gap-2 text-sm text-zinc-400">
+                <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                <span>Chargement du monde...</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard
+          icon={<Target className="w-4 h-4" />}
+          label="Cursus suivis"
+          value={curricula.length}
+          color="emerald"
+          onClick={() => {}}
+        />
+        <StatCard
+          icon={<Sparkles className="w-4 h-4" />}
+          label="Missions générées"
+          value={totalMissions}
+          color="amber"
+          onClick={() => useUI.getState().openMissions()}
+        />
+        <StatCard
+          icon={<CheckCircle2 className="w-4 h-4" />}
+          label="Missions complétées"
+          value={completedMissions}
+          color="emerald"
+          onClick={() => useUI.getState().openMissions()}
+        />
+        <StatCard
+          icon={<Users className="w-4 h-4" />}
+          label="Agents nés"
+          value={totalAgents}
+          color="purple"
+          onClick={openAgents}
+        />
+      </div>
+
+      {/* Empty state hint */}
+      {curricula.length === 0 && !loading && (
+        <Card className="p-6 border-amber-500/30 bg-amber-500/5 backdrop-blur-xl">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <h3 className="font-bold text-amber-300 mb-1">Bienvenue dans votre monde vierge</h3>
+              <p className="text-sm text-zinc-300 leading-relaxed mb-2">
+                Pour commencer : installez l'extension Chrome (en haut de la page) pour capturer
+                vos cours DataCamp, ou créez manuellement un cursus personnalisé. Chaque mission
+                complétée rapporte de l'XP et fait naître des agents-mémoire.
+              </p>
+              <p className="text-xs text-zinc-500">
+                Objectif : atteindre le niveau 3 (1500 XP) sur un cursus pour faire naître votre premier agent.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Active agents preview */}
       {totalAgents > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-lg font-bold">Vos agents actifs</h2>
-              <p className="text-xs text-zinc-500">
-                Cliquez pour discuter avec votre futur vous
-              </p>
+              <p className="text-xs text-zinc-500">Cliquez pour discuter avec votre futur vous</p>
             </div>
             <button
               onClick={openAgents}
@@ -221,14 +582,12 @@ export function DashboardView() {
               Tout voir <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {curricula
-              .filter((c) => c.agent)
-              .map((c) => (
-                <AgentMiniCard key={c.agent!.id} curriculum={c} onOpen={() => useUI.getState().openAgentChat(c.agent!.id)} />
-              ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {curricula.filter((c) => c.agent).map((c) => (
+              <AgentMiniCard key={c.agent!.id} curriculum={c} onOpen={() => useUI.getState().openAgentChat(c.agent!.id)} />
+            ))}
           </div>
-        </section>
+        </div>
       )}
 
       <CreateCurriculumDialog
@@ -240,102 +599,37 @@ export function DashboardView() {
   )
 }
 
-function StatBox({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
-  return (
-    <div className="rounded-lg border border-zinc-800/60 bg-zinc-900/40 p-3">
-      <div className="flex items-center gap-2 text-zinc-500 mb-1">
-        {icon}
-        <span className="text-[10px] uppercase tracking-wider">{label}</span>
-      </div>
-      <div className="text-2xl font-bold tabular-nums text-zinc-100">{value}</div>
-    </div>
-  )
-}
-
-function CurriculumCard({ curriculum, onOpen }: { curriculum: Curriculum; onOpen: () => void }) {
-  const Icon = iconMap[curriculum.icon] || Code2
-  const completedMissions = curriculum.missions.filter((m) => m.status === 'completed').length
-  const totalMissions = curriculum.missions.length
-  const xpForNextLevel = curriculum.level * 500
-  const xpProgress = (curriculum.xp % 500) / 5 // 0-100
-
-  // Agent unlocked at level 3
-  const agentUnlocked = curriculum.level >= 3
-
+function StatCard({
+  icon,
+  label,
+  value,
+  color,
+  onClick,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: number
+  color: 'emerald' | 'amber' | 'purple'
+  onClick?: () => void
+}) {
+  const colorMap = {
+    emerald: 'border-emerald-500/30 bg-emerald-500/5 text-emerald-300',
+    amber: 'border-amber-500/30 bg-amber-500/5 text-amber-300',
+    purple: 'border-purple-500/30 bg-purple-500/5 text-purple-300',
+  }
   return (
     <button
-      onClick={onOpen}
-      className="group text-left w-full"
+      onClick={onClick}
+      className={`text-left rounded-xl border ${colorMap[color]} p-4 backdrop-blur-xl hover:scale-[1.02] transition-transform`}
     >
-      <Card className="relative overflow-hidden border-zinc-800/60 bg-zinc-900/40 hover:bg-zinc-900/60 transition-all hover:border-zinc-700 p-5 h-full">
-        {/* Color stripe */}
-        <div
-          className="absolute top-0 left-0 right-0 h-0.5"
-          style={{ backgroundColor: curriculum.color, opacity: 0.8 }}
-        />
-        {/* Glow */}
-        <div
-          className="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity"
-          style={{ backgroundColor: curriculum.color }}
-        />
-
-        <div className="relative">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{
-                  backgroundColor: `${curriculum.color}20`,
-                  border: `1px solid ${curriculum.color}40`,
-                }}
-              >
-                <Icon className="w-5 h-5" style={{ color: curriculum.color }} />
-              </div>
-              <div>
-                <h3 className="font-bold text-zinc-100">{curriculum.name}</h3>
-                <span className="text-[10px] uppercase tracking-wider text-zinc-500">
-                  Niveau {curriculum.level}
-                </span>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-300 group-hover:translate-x-0.5 transition-all" />
-          </div>
-
-          <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2 mb-4 min-h-[2.5rem]">
-            {curriculum.description}
-          </p>
-
-          {/* XP progress */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[10px] text-zinc-500">
-              <span>{curriculum.xp} XP</span>
-              <span>{xpForNextLevel} XP</span>
-            </div>
-            <Progress value={xpProgress} className="h-1.5 bg-zinc-800" />
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-800/60">
-            <div className="flex items-center gap-2 text-[10px] text-zinc-500">
-              <Target className="w-3 h-3" />
-              <span>{completedMissions}/{totalMissions} missions</span>
-            </div>
-            {curriculum.agent ? (
-              <Badge className="bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20">
-                <Users className="w-2.5 h-2.5 mr-1" /> {curriculum.agent.name}
-              </Badge>
-            ) : agentUnlocked ? (
-              <Badge className="bg-amber-500/10 text-amber-300 border-amber-500/30">
-                <Sparkles className="w-2.5 h-2.5 mr-1" /> Naissance imminente
-              </Badge>
-            ) : (
-              <Badge className="bg-zinc-800/50 text-zinc-500 border-zinc-700/50">
-                Niveau 3 requis
-              </Badge>
-            )}
-          </div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+          {icon}
         </div>
-      </Card>
+        <Crown className="w-3 h-3 opacity-30" />
+      </div>
+      <div className="text-2xl font-bold tabular-nums text-zinc-100">{value}</div>
+      <div className="text-[10px] uppercase tracking-wider text-zinc-500 mt-1">{label}</div>
     </button>
   )
 }
@@ -344,10 +638,10 @@ function AgentMiniCard({ curriculum, onOpen }: { curriculum: Curriculum; onOpen:
   const agent = curriculum.agent!
   return (
     <button onClick={onOpen} className="group text-left w-full">
-      <Card className="p-4 border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all">
+      <Card className="p-4 border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-zinc-950 font-bold text-xs">
-            {domainEmojis[curriculum.domain]?.slice(0, 2).toUpperCase() || 'AG'}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-zinc-950 font-bold text-xs shadow-lg shadow-emerald-500/30">
+            {curriculum.name.slice(0, 2).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">

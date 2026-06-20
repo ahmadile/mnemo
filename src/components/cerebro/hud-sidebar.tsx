@@ -1,87 +1,108 @@
 'use client'
 
 import { useUI, ViewName } from '@/store/ui'
-import { Brain, Code2, Users, Home, Network, Gamepad2 } from 'lucide-react'
+import { Brain, Map, Gamepad2, Users, Target, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems: { id: ViewName; label: string; icon: any; desc: string }[] = [
-  { id: 'dashboard', label: 'Carte', icon: Home, desc: 'Vue du monde' },
-  { id: 'world', label: 'Réseau', icon: Network, desc: 'Agents & communications' },
+  { id: 'dashboard', label: 'Carte', icon: Map, desc: 'Monde & cursus' },
   { id: 'virtual-world', label: 'Monde 2D', icon: Gamepad2, desc: 'Simulation RPG' },
   { id: 'agents', label: 'Agents', icon: Users, desc: 'Vos moi virtuels' },
+  { id: 'missions', label: 'Missions', icon: Target, desc: 'Toutes vos missions' },
+  { id: 'settings', label: 'Réglages', icon: Settings, desc: 'Profil & config' },
 ]
 
 export function HudSidebar() {
   const view = useUI((s) => s.view)
   const goDashboard = useUI((s) => s.goDashboard)
-  const openAgents = useUI((s) => s.openAgents)
-  const openWorld = useUI((s) => s.openWorld)
-
   const openVirtualWorld = useUI((s) => s.openVirtualWorld)
+  const openAgents = useUI((s) => s.openAgents)
+  const openMissions = useUI((s) => s.openMissions)
+  const openSettings = useUI((s) => s.openSettings)
 
   const handleClick = (id: ViewName) => {
     if (id === 'dashboard') goDashboard()
-    else if (id === 'agents') openAgents()
-    else if (id === 'world') openWorld()
     else if (id === 'virtual-world') openVirtualWorld()
+    else if (id === 'agents') openAgents()
+    else if (id === 'missions') openMissions()
+    else if (id === 'settings') openSettings()
   }
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r border-zinc-800/60 bg-zinc-900/40 backdrop-blur">
-      <div className="p-6 border-b border-zinc-800/60">
-        <div className="flex items-center gap-3">
+    <aside className="hidden md:flex w-64 flex-col border-r border-white/5 bg-zinc-950/60 backdrop-blur-xl">
+      {/* Logo / Brand */}
+      <div className="p-6 border-b border-white/5">
+        <button
+          onClick={goDashboard}
+          className="flex items-center gap-3 group w-full"
+        >
           <div className="relative">
-            <div className="absolute inset-0 bg-emerald-500/30 blur-lg rounded-full" />
-            <Brain className="relative w-8 h-8 text-emerald-400" />
+            <div className="absolute inset-0 bg-emerald-500/40 blur-lg rounded-full group-hover:bg-emerald-400/50 transition-colors" />
+            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <Brain className="w-5 h-5 text-zinc-950" />
+            </div>
           </div>
-          <div>
-            <h1 className="font-bold text-lg tracking-tight">MNEMO</h1>
+          <div className="text-left">
+            <h1 className="font-bold text-base tracking-tight text-zinc-50">MNEMO</h1>
             <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-              v1.1 · mind.net
+              v1.4 · mind.net
             </p>
           </div>
-        </div>
+        </button>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      {/* Nav */}
+      <nav className="flex-1 p-3 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon
-          const active = view === item.id
+          const active = view === item.id ||
+            (item.id === 'agents' && view === 'agent-chat') ||
+            (item.id === 'dashboard' && view === 'curriculum') ||
+            (item.id === 'missions' && view === 'mission')
           return (
             <button
               key={item.id}
               onClick={() => handleClick(item.id)}
               className={cn(
-                'w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-all text-left group',
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left group relative overflow-hidden',
                 active
-                  ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 border border-transparent'
+                  ? 'bg-gradient-to-r from-emerald-500/20 to-transparent text-emerald-200 border border-emerald-500/30'
+                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5 border border-transparent'
               )}
             >
-              <Icon className="w-4 h-4 flex-shrink-0" />
+              {active && (
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-r" />
+              )}
+              <div className={cn(
+                'w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
+                active
+                  ? 'bg-emerald-500/20 text-emerald-300'
+                  : 'bg-white/5 text-zinc-500 group-hover:text-zinc-300'
+              )}>
+                <Icon className="w-4 h-4" />
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium">{item.label}</div>
                 <div className="text-[10px] text-zinc-500 group-hover:text-zinc-400">
                   {item.desc}
                 </div>
               </div>
-              {active && <div className="w-1 h-6 rounded-full bg-emerald-400" />}
             </button>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t border-zinc-800/60">
-        <div className="rounded-lg border border-zinc-800/60 bg-zinc-900/60 p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Code2 className="w-3 h-3 text-amber-400" />
-            <span className="text-[10px] uppercase tracking-wider text-amber-400 font-semibold">
+      {/* Bottom card */}
+      <div className="p-3 border-t border-white/5">
+        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-emerald-500/10 to-amber-500/5 p-3 backdrop-blur-sm">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] uppercase tracking-wider text-emerald-300 font-semibold">
               Astuce
             </span>
           </div>
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            Soumettez vos notes de cours. L'IA générera une mission style GTA
-            spécifique au chapitre étudié.
+          <p className="text-[11px] text-zinc-400 leading-relaxed">
+            Capturez vos cours DataCamp avec l'extension Chrome pour générer des missions automatiquement.
           </p>
         </div>
       </div>

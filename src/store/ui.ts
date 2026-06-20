@@ -1,14 +1,15 @@
-// Global UI state for navigation between views (no persistence needed beyond session)
+// Global UI state for navigation between views
 import { create } from 'zustand'
 
 export type ViewName =
-  | 'dashboard'
-  | 'curriculum'      // curriculum detail (with submit course form + mission list)
-  | 'mission'         // active mission (briefing + code editor)
-  | 'agents'          // agent gallery
-  | 'agent-chat'      // chat with one agent
-  | 'world'           // "Monde des Agents" SVG visualization (agents + communications)
-  | 'virtual-world'   // 2D top-down RPG simulation with avatars and chat bubbles
+  | 'dashboard'      // Carte fantasy interactive
+  | 'virtual-world'  // Monde 2D Phaser
+  | 'agents'         // Galerie d'agents
+  | 'missions'       // Toutes les missions (tous cursus)
+  | 'settings'       // Réglages
+  | 'curriculum'     // Détail d'un cursus (depuis la carte)
+  | 'mission'        // Mission en cours
+  | 'agent-chat'     // Chat avec un agent
 
 interface UIState {
   view: ViewName
@@ -16,14 +17,14 @@ interface UIState {
   activeMissionId: string | null
   activeAgentId: string | null
 
-  // navigation actions
   goDashboard: () => void
+  openVirtualWorld: () => void
+  openAgents: () => void
+  openMissions: () => void
+  openSettings: () => void
   openCurriculum: (id: string) => void
   openMission: (id: string, curriculumId?: string) => void
-  openAgents: () => void
   openAgentChat: (id: string) => void
-  openWorld: () => void
-  openVirtualWorld: () => void
 }
 
 export const useUI = create<UIState>((set) => ({
@@ -33,6 +34,10 @@ export const useUI = create<UIState>((set) => ({
   activeAgentId: null,
 
   goDashboard: () => set({ view: 'dashboard' }),
+  openVirtualWorld: () => set({ view: 'virtual-world' }),
+  openAgents: () => set({ view: 'agents' }),
+  openMissions: () => set({ view: 'missions' }),
+  openSettings: () => set({ view: 'settings' }),
   openCurriculum: (id) => set({ view: 'curriculum', activeCurriculumId: id }),
   openMission: (id, curriculumId) =>
     set((s) => ({
@@ -40,8 +45,5 @@ export const useUI = create<UIState>((set) => ({
       activeMissionId: id,
       activeCurriculumId: curriculumId ?? s.activeCurriculumId,
     })),
-  openAgents: () => set({ view: 'agents' }),
   openAgentChat: (id) => set({ view: 'agent-chat', activeAgentId: id }),
-  openWorld: () => set({ view: 'world' }),
-  openVirtualWorld: () => set({ view: 'virtual-world' }),
 }))

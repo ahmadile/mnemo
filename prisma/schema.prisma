@@ -84,3 +84,21 @@ model AgentConversation {
   content     String
   createdAt   DateTime @default(now())
 }
+
+// Quêtes quotidiennes auto-générées pour le spaced retrieval
+// Une nouvelle quête est créée chaque jour, basée sur les missions accomplies récentes
+model DailyQuest {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  type        String   // "review" | "challenge" | "streak" | "new_mission"
+  xpReward    Int      @default(50)
+  status      String   @default("pending") // "pending" | "completed"
+  // Link to a mission or agent if relevant
+  missionId   String?
+  agentId     String?
+  // Date (day granularity - one quest set per day)
+  questDate   DateTime
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+}
