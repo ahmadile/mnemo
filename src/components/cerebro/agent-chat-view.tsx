@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Avatar } from '@/components/cerebro/avatar'
 import {
   ArrowLeft,
   Send,
@@ -190,15 +191,12 @@ export function AgentChatView() {
         />
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm"
-              style={{
-                background: `linear-gradient(135deg, ${agent.curriculum.color}, ${agent.curriculum.color}80)`,
-                color: '#0a0a0a',
-              }}
-            >
-              {initials}
-            </div>
+            <Avatar
+              seed={agent.id}
+              domain={agent.curriculum.domain}
+              size={48}
+              className="ring-2 ring-emerald-500/40"
+            />
             <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-zinc-950 border-2 border-zinc-800 flex items-center justify-center">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
@@ -275,19 +273,16 @@ export function AgentChatView() {
           ) : (
             <div className="space-y-4">
               {agent.conversations.map((conv) => (
-                <MessageBubble key={conv.id} conversation={conv} agentColor={agent.curriculum.color} initials={initials} />
+                <MessageBubble key={conv.id} conversation={conv} agentColor={agent.curriculum.color} initials={initials} agentId={agent.id} agentDomain={agent.curriculum.domain} />
               ))}
               {sending && (
                 <div className="flex items-start gap-3">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-[10px] flex-shrink-0"
-                    style={{
-                      background: `linear-gradient(135deg, ${agent.curriculum.color}, ${agent.curriculum.color}80)`,
-                      color: '#0a0a0a',
-                    }}
-                  >
-                    {initials}
-                  </div>
+                  <Avatar
+                    seed={agent.id}
+                    domain={agent.curriculum.domain}
+                    size={32}
+                    className="flex-shrink-0"
+                  />
                   <div className="bg-zinc-800/50 rounded-lg px-3 py-2">
                     <Loader2 className="w-4 h-4 animate-spin text-zinc-400" />
                   </div>
@@ -345,29 +340,30 @@ function MessageBubble({
   conversation,
   agentColor,
   initials,
+  agentId,
+  agentDomain,
 }: {
   conversation: Conversation
   agentColor: string
   initials: string
+  agentId?: string
+  agentDomain?: string
 }) {
   const isUser = conversation.role === 'user'
   return (
     <div className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
-      <div
-        className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-[10px] flex-shrink-0 ${
-          isUser ? 'bg-zinc-700 text-zinc-300' : ''
-        }`}
-        style={
-          !isUser
-            ? {
-                background: `linear-gradient(135deg, ${agentColor}, ${agentColor}80)`,
-                color: '#0a0a0a',
-              }
-            : undefined
-        }
-      >
-        {isUser ? 'VOUS' : initials}
-      </div>
+      {isUser ? (
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-[10px] flex-shrink-0 bg-zinc-700 text-zinc-300">
+          VOUS
+        </div>
+      ) : (
+        <Avatar
+          seed={agentId || 'agent'}
+          domain={agentDomain}
+          size={32}
+          className="flex-shrink-0"
+        />
+      )}
       <div
         className={`max-w-[80%] rounded-lg px-3 py-2 text-sm leading-relaxed ${
           isUser

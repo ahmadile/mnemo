@@ -107,6 +107,18 @@ export function MissionView() {
       if (data.missionCompleted) {
         setMissionCompleted(true)
         toast.success(`Mission complétée! +${mission?.xp} XP`)
+        // Trigger confetti celebration
+        import('@/components/cerebro/celebrate').then(({ celebrateMission }) => {
+          celebrateMission()
+        })
+        // If level up, even bigger celebration
+        if (data.newLevel && data.newLevel >= 3) {
+          setTimeout(() => {
+            import('@/components/cerebro/celebrate').then(({ celebrateLevel }) => {
+              celebrateLevel()
+            })
+          }, 1500)
+        }
       } else if (data.evaluation.passed) {
         toast.success('Mission validée')
       } else {

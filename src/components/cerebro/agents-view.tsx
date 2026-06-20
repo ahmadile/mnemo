@@ -5,6 +5,7 @@ import { useUI } from '@/store/ui'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Avatar } from '@/components/cerebro/avatar'
 import {
   Users,
   Loader2,
@@ -125,8 +126,6 @@ export function AgentsView() {
 
 function AgentCard({ agent, onOpen }: { agent: Agent; onOpen: () => void }) {
   const skills: string[] = JSON.parse(agent.skills)
-  const initials =
-    domainInitials[agent.curriculum.domain] || agent.name.slice(0, 2).toUpperCase()
 
   return (
     <button onClick={onOpen} className="group text-left w-full">
@@ -144,15 +143,12 @@ function AgentCard({ agent, onOpen }: { agent: Agent; onOpen: () => void }) {
           {/* Avatar + name */}
           <div className="flex items-start gap-3 mb-4">
             <div className="relative">
-              <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-sm"
-                style={{
-                  background: `linear-gradient(135deg, ${agent.curriculum.color}, ${agent.curriculum.color}80)`,
-                  color: '#0a0a0a',
-                }}
-              >
-                {initials}
-              </div>
+              <Avatar
+                seed={agent.id}
+                domain={agent.curriculum.domain}
+                size={56}
+                className="ring-2 ring-emerald-500/40"
+              />
               <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-zinc-950 border-2 border-zinc-800 flex items-center justify-center">
                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               </div>

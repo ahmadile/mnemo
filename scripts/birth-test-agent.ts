@@ -4,7 +4,9 @@ import { db } from '../src/lib/db'
 import ZAI from 'z-ai-web-dev-sdk'
 
 async function main() {
-  const py = await db.curriculum.findUnique({ where: { domain: 'python' } })
+  // Find Python curriculum by name (domain slug may vary)
+  const all = await db.curriculum.findMany()
+  const py = all.find((c) => c.name.toLowerCase().includes('python'))
   if (!py) throw new Error('Python curriculum not found')
   await db.curriculum.update({
     where: { id: py.id },

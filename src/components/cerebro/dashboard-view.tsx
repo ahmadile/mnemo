@@ -5,6 +5,8 @@ import { useUI } from '@/store/ui'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { Avatar } from '@/components/cerebro/avatar'
+import { ActivityHeatmap } from '@/components/cerebro/activity-heatmap'
 import { DatacampStatus } from '@/components/cerebro/datacamp-status'
 import { CreateCurriculumDialog } from '@/components/cerebro/create-curriculum-dialog'
 import {
@@ -82,6 +84,8 @@ export function DashboardView() {
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
   const [dailyQuests, setDailyQuests] = useState<DailyQuest[]>([])
+  const [activityData, setActivityData] = useState<any[]>([])
+  const [streak, setStreak] = useState(0)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
@@ -91,6 +95,7 @@ export function DashboardView() {
   useEffect(() => {
     refresh()
     loadDailyQuests()
+    loadActivity()
   }, [])
 
   async function refresh() {
@@ -101,6 +106,17 @@ export function DashboardView() {
       setCurricula(data.curricula || [])
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadActivity() {
+    try {
+      const res = await fetch('/api/activity')
+      const data = await res.json()
+      setActivityData(data.data || [])
+      setStreak(data.streak || 0)
+    } catch {
+      // silent
     }
   }
 
@@ -545,6 +561,11 @@ export function DashboardView() {
         />
       </div>
 
+      {/* Activity heatmap */}
+      {activityData.length > 0 && (
+        <ActivityHeatmap data={activityData} streak={streak} />
+      )}
+
       {/* Empty state hint */}
       {curricula.length === 0 && !loading && (
         <Card className="p-6 border-amber-500/30 bg-amber-500/5 backdrop-blur-xl">
@@ -640,9 +661,12 @@ function AgentMiniCard({ curriculum, onOpen }: { curriculum: Curriculum; onOpen:
     <button onClick={onOpen} className="group text-left w-full">
       <Card className="p-4 border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-zinc-950 font-bold text-xs shadow-lg shadow-emerald-500/30">
-            {curriculum.name.slice(0, 2).toUpperCase()}
-          </div>
+          <Avatar
+            seed={agent.id}
+            domain={curriculum.domain}
+            size={40}
+            className="ring-2 ring-emerald-500/40"
+          />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-bold text-zinc-100">{agent.name}</span>
