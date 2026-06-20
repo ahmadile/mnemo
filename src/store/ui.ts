@@ -7,6 +7,7 @@ export type ViewName =
   | 'mission'         // active mission (briefing + code editor)
   | 'agents'          // agent gallery
   | 'agent-chat'      // chat with one agent
+  | 'world'           // "Monde des Agents" visualization (agents + communications)
 
 interface UIState {
   view: ViewName
@@ -20,6 +21,7 @@ interface UIState {
   openMission: (id: string, curriculumId?: string) => void
   openAgents: () => void
   openAgentChat: (id: string) => void
+  openWorld: () => void
 }
 
 export const useUI = create<UIState>((set) => ({
@@ -38,4 +40,5 @@ export const useUI = create<UIState>((set) => ({
     })),
   openAgents: () => set({ view: 'agents' }),
   openAgentChat: (id) => set({ view: 'agent-chat', activeAgentId: id }),
+  openWorld: () => set({ view: 'world' }),
 }))

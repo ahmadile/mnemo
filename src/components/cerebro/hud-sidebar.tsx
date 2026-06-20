@@ -1,22 +1,25 @@
 'use client'
 
-import { useUI } from '@/store/ui'
-import { Brain, Map, Code2, Users, Home } from 'lucide-react'
+import { useUI, ViewName } from '@/store/ui'
+import { Brain, Code2, Users, Home, Network } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const navItems = [
-  { id: 'dashboard' as const, label: 'Carte', icon: Home, desc: 'Vue du monde' },
-  { id: 'agents' as const, label: 'Agents', icon: Users, desc: 'Vos moi virtuels' },
+const navItems: { id: ViewName; label: string; icon: any; desc: string }[] = [
+  { id: 'dashboard', label: 'Carte', icon: Home, desc: 'Vue du monde' },
+  { id: 'world', label: 'Monde', icon: Network, desc: 'Agents & communications' },
+  { id: 'agents', label: 'Agents', icon: Users, desc: 'Vos moi virtuels' },
 ]
 
 export function HudSidebar() {
   const view = useUI((s) => s.view)
   const goDashboard = useUI((s) => s.goDashboard)
   const openAgents = useUI((s) => s.openAgents)
+  const openWorld = useUI((s) => s.openWorld)
 
-  const handleClick = (id: 'dashboard' | 'agents') => {
+  const handleClick = (id: ViewName) => {
     if (id === 'dashboard') goDashboard()
-    else openAgents()
+    else if (id === 'agents') openAgents()
+    else if (id === 'world') openWorld()
   }
 
   return (
@@ -28,9 +31,9 @@ export function HudSidebar() {
             <Brain className="relative w-8 h-8 text-emerald-400" />
           </div>
           <div>
-            <h1 className="font-bold text-lg tracking-tight">CEREBRO</h1>
+            <h1 className="font-bold text-lg tracking-tight">MNEMO</h1>
             <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-              v1.0 · mind.net
+              v1.1 · mind.net
             </p>
           </div>
         </div>

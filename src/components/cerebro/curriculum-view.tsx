@@ -20,6 +20,9 @@ import {
   Sparkles,
   CheckCircle2,
   Send,
+  Link2,
+  Download,
+  FileText,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -72,6 +75,8 @@ export function CurriculumView() {
   const [courseContent, setCourseContent] = useState('')
   const [courseLink, setCourseLink] = useState('')
   const [generating, setGenerating] = useState(false)
+  const [extracting, setExtracting] = useState(false)
+  const [extractedTitle, setExtractedTitle] = useState<string | null>(null)
 
   useEffect(() => {
     if (!curriculumId) {
@@ -116,6 +121,7 @@ export function CurriculumView() {
       toast.success(`Mission générée: ${data.mission.title}`)
       setCourseContent('')
       setCourseLink('')
+      setExtractedTitle(null)
       await refresh()
       // Open the new mission
       openMission(data.mission.id, curriculumId)
@@ -123,6 +129,42 @@ export function CurriculumView() {
       toast.error(e.message)
     } finally {
       setGenerating(false)
+    }
+  }
+
+  async function handleExtractUrl() {
+    if (!courseLink.trim()) {
+      toast.error('Collez une URL d\'abord')
+      return
+    }
+    if (!courseLink.startsWith('http')) {
+      toast.error('URL invalide')
+      return
+    }
+    setExtracting(true)
+    setExtractedTitle(null)
+    try {
+      const res = await fetch('/api/extract-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: courseLink.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Extraction impossible')
+      if (!data.content || data.content.length < 50) {
+        throw new Error('Contenu extrait trop court ou vide')
+      }
+      // Truncate to reasonable length for the LLM
+      const truncated = data.content.slice(0, 6000)
+      setCourseContent(truncated)
+      setExtractedTitle(data.title || null)
+      toast.success(
+        `Contenu extrait${data.title ? ` : ${data.title}` : ''} (${data.contentLength} caractères)`
+      )
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setExtracting(false)
     }
   }
 
@@ -222,23 +264,51 @@ export function CurriculumView() {
           <h2 className="font-bold">Soumettre un cours</h2>
         </div>
         <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
-          Collez vos notes de cours, le résumé d'une vidéo ou le contenu d'un chapitre.
-          L'IA générera une mission style GTA spécifique à ce que vous venez d'apprendre.
+          Trois options : collez une URL DataCamp (ou autre) et cliquez sur Extraire,
+          collez vos notes directement, ou combinez les deux. L'IA génère une mission
+          style GTA spécifique au chapitre étudié.
         </p>
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="link" className="text-xs text-zinc-400">
-              Lien du cours (optionnel)
+            <Label htmlFor="link" className="text-xs text-zinc-400 flex items-center gap-1.5">
+              <Link2 className="w-3 h-3" />
+              Lien du cours (DataCamp, doc, blog...)
             </Label>
-            <Input
-              id="link"
-              value={courseLink}
-              onChange={(e) => setCourseLink(e.target.value)}
-              placeholder="https://exemple.com/cours/python-intro"
-              className="mt-1 bg-zinc-950/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600"
-            />
+            <div className="mt-1 flex gap-2">
+              <Input
+                id="link"
+                value={courseLink}
+                onChange={(e) => setCourseLink(e.target.value)}
+                placeholder="https://app.datacamp.com/learn/courses/intro-to-python"
+                className="flex-1 bg-zinc-950/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 font-mono text-xs"
+              />
+              <Button
+                onClick={handleExtractUrl}
+                disabled={extracting || !courseLink.trim()}
+                variant="outline"
+                className="border-zinc-700 hover:bg-zinc-800/50 hover:text-emerald-300"
+                type="button"
+              >
+                {extracting ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <Download className="w-3.5 h-3.5 mr-1.5" />
+                )}
+                Extraire
+              </Button>
+            </div>
+            <p className="text-[10px] text-zinc-600 mt-1">
+              L'IA lit la page et remplit le champ contenu automatiquement
+            </p>
           </div>
+
+          {extractedTitle && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 text-xs text-emerald-300">
+              <FileText className="w-3.5 h-3.5" />
+              <span className="truncate">Extrait : {extractedTitle}</span>
+            </div>
+          )}
 
           <div>
             <Label htmlFor="content" className="text-xs text-zinc-400">

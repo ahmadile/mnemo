@@ -5,6 +5,7 @@ import { useUI } from '@/store/ui'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { CodeEditor } from '@/components/cerebro/code-editor'
 import {
   ArrowLeft,
   Target,
@@ -17,6 +18,9 @@ import {
   Code2,
   Trophy,
   AlertCircle,
+  RotateCcw,
+  Copy,
+  Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -58,6 +62,7 @@ export function MissionView() {
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null)
   const [missionCompleted, setMissionCompleted] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  const [copied, setCopied] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -114,18 +119,22 @@ export function MissionView() {
     }
   }
 
-  // Handle Tab key in code editor for indentation
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Tab') {
-      e.preventDefault()
-      const target = e.currentTarget
-      const start = target.selectionStart
-      const end = target.selectionEnd
-      const newValue = code.substring(0, start) + '  ' + code.substring(end)
-      setCode(newValue)
-      requestAnimationFrame(() => {
-        target.selectionStart = target.selectionEnd = start + 2
-      })
+  // Reset code to starter
+  function handleReset() {
+    if (mission?.starterCode) {
+      setCode(mission.starterCode)
+      toast.info('Code réinitialisé')
+    }
+  }
+
+  // Copy code to clipboard
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error('Impossible de copier')
     }
   }
 
@@ -255,18 +264,32 @@ export function MissionView() {
               solution.{mission.language === 'Python' ? 'py' : mission.language === 'SQL' ? 'sql' : 'js'}
             </span>
           </div>
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider">
-            {mission.language}
-          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleCopy}
+              className="p-1.5 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/60 transition-colors"
+              title="Copier le code"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+            <button
+              onClick={handleReset}
+              className="p-1.5 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/60 transition-colors"
+              title="Réinitialiser"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-[10px] text-zinc-500 uppercase tracking-wider ml-2">
+              {mission.language}
+            </span>
+          </div>
         </div>
-        <textarea
-          ref={textareaRef}
+        <CodeEditor
           value={code}
-          onChange={(e) => setCode(e.target.value)}
-          onKeyDown={handleKeyDown}
-          spellCheck={false}
-          className="w-full h-80 p-4 bg-transparent text-zinc-100 font-mono text-xs leading-relaxed resize-none focus:outline-none placeholder:text-zinc-700"
-          placeholder="Écrivez votre code ici..."
+          onChange={setCode}
+          language={mission.language}
+          placeholder="// Écrivez votre code ici... (Tab pour indenter)"
+          minHeight={360}
         />
       </Card>
 

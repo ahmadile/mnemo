@@ -48,6 +48,7 @@ export function HudTopbar() {
     mission: 'Mission en cours',
     agents: 'Vos agents virtuels',
     'agent-chat': 'Conversation',
+    world: 'MONDE DES AGENTS',
   }
 
   return (
@@ -59,7 +60,7 @@ export function HudTopbar() {
           </div>
           <div>
             <h2 className="text-sm font-bold tracking-wider text-zinc-100">
-              {viewTitle[view] || 'CEREBRO'}
+              {viewTitle[view] || 'MNEMO'}
             </h2>
             <p className="text-[10px] text-zinc-500 uppercase tracking-[0.15em]">
               {view === 'dashboard' && "Vue d'ensemble"}
@@ -67,6 +68,7 @@ export function HudTopbar() {
               {view === 'mission' && 'Briefing & éditeur'}
               {view === 'agents' && 'Galerie'}
               {view === 'agent-chat' && 'Chat mémoire'}
+              {view === 'world' && 'Réseau & communications'}
             </p>
           </div>
         </div>

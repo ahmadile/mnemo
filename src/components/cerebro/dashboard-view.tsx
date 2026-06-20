@@ -106,13 +106,14 @@ export function DashboardView() {
           <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-3 max-w-3xl">
             Chaque cours que vous révisez devient une mission.
             <br />
-            <span className="text-zinc-500">Chaque cursus terminé devient un agent.</span>
+            <span className="text-zinc-500">Chaque cursus terminé devient un agent-mémoire.</span>
           </h1>
           <p className="text-sm md:text-base text-zinc-400 max-w-2xl leading-relaxed">
-            Soumettez vos notes de cours, l'IA génère un défi de codage style GTA
-            spécifique au chapitre étudié. Complétez les missions pour gagner de
-            l'XP et donner naissance à des agents virtuels - votre mémoire dans
-            chaque domaine.
+            Collez un lien DataCamp, une URL de cours ou vos notes. Mnemo génère un
+            défi de codage style GTA spécifique au chapitre étudié. Complétez les
+            missions pour gagner de l'XP et donner naissance à des agents-mémoires
+            - votre mémoire virtuelle dans chaque domaine, que vous pouvez réveiller
+            à tout moment pour réviser.
           </p>
 
           <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">

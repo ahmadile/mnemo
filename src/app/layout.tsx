@@ -14,19 +14,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CEREBRO · Votre monde virtuel d'apprentissage",
+  title: "MNEMO · Votre monde virtuel d'apprentissage",
   description:
-    "Soumettez vos cours, l'IA génère des missions style GTA spécifiques. Complétez les cursus pour donner naissance à des agents virtuels - votre mémoire dans chaque domaine.",
+    "Soumettez vos cours (DataCamp, liens, notes), l'IA génère des missions style GTA spécifiques. Complétez les cursus pour donner naissance à des agents virtuels - votre mémoire dans chaque domaine.",
   keywords: [
     "apprentissage",
+    "Mnemo",
     "Python",
     "SQL",
     "IA",
     "data science",
+    "DataCamp",
     "missions",
     "agents virtuels",
   ],
-  authors: [{ name: "Cerebro" }],
+  authors: [{ name: "Mnemo" }],
 };
 
 export default function RootLayout({

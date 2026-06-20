@@ -7,6 +7,7 @@ import { CurriculumView } from '@/components/cerebro/curriculum-view'
 import { MissionView } from '@/components/cerebro/mission-view'
 import { AgentsView } from '@/components/cerebro/agents-view'
 import { AgentChatView } from '@/components/cerebro/agent-chat-view'
+import { WorldView } from '@/components/cerebro/world-view'
 import { HudSidebar } from '@/components/cerebro/hud-sidebar'
 import { HudTopbar } from '@/components/cerebro/hud-topbar'
 
@@ -30,6 +31,7 @@ export default function Home() {
             {view === 'mission' && <MissionView />}
             {view === 'agents' && <AgentsView />}
             {view === 'agent-chat' && <AgentChatView />}
+            {view === 'world' && <WorldView />}
           </div>
         </main>
       </div>
