@@ -5,6 +5,8 @@ import { useUI } from '@/store/ui'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
+import { DatacampStatus } from '@/components/cerebro/datacamp-status'
+import { CreateCurriculumDialog } from '@/components/cerebro/create-curriculum-dialog'
 import {
   Brain,
   Database,
@@ -15,6 +17,7 @@ import {
   Sparkles,
   Target,
   Users,
+  Plus,
 } from 'lucide-react'
 
 interface Mission {
@@ -65,6 +68,7 @@ const domainEmojis: Record<string, string> = {
 export function DashboardView() {
   const [curricula, setCurricula] = useState<Curriculum[]>([])
   const [loading, setLoading] = useState(true)
+  const [createOpen, setCreateOpen] = useState(false)
   const openCurriculum = useUI((s) => s.openCurriculum)
   const openAgents = useUI((s) => s.openAgents)
 
@@ -92,6 +96,9 @@ export function DashboardView() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
+      {/* DataCamp status banner */}
+      <DatacampStatus />
+
       {/* Hero */}
       <section className="relative overflow-hidden rounded-xl border border-zinc-800/60 bg-gradient-to-br from-zinc-900 via-zinc-900/50 to-zinc-950 p-6 md:p-8">
         <div className="absolute -top-12 -right-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -134,6 +141,13 @@ export function DashboardView() {
               Cliquez un territoire pour soumettre un cours ou voir les missions
             </p>
           </div>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Nouveau cursus
+          </button>
         </div>
 
         {loading ? (
@@ -147,6 +161,22 @@ export function DashboardView() {
             {curricula.map((c) => (
               <CurriculumCard key={c.id} curriculum={c} onOpen={() => openCurriculum(c.id)} />
             ))}
+            {/* Add new curriculum card */}
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="group text-left w-full"
+            >
+              <Card className="border-dashed border-zinc-700 bg-zinc-900/20 hover:bg-zinc-900/40 hover:border-emerald-500/40 transition-all p-5 h-full flex items-center justify-center min-h-[180px]">
+                <div className="text-center">
+                  <div className="w-10 h-10 rounded-lg bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-center mx-auto mb-2 group-hover:bg-emerald-500/10 group-hover:border-emerald-500/30 transition-colors">
+                    <Plus className="w-5 h-5 text-zinc-500 group-hover:text-emerald-400" />
+                  </div>
+                  <p className="text-xs text-zinc-500 group-hover:text-zinc-300">
+                    Créer un cursus personnalisé
+                  </p>
+                </div>
+              </Card>
+            </button>
           </div>
         )}
       </section>
@@ -177,6 +207,12 @@ export function DashboardView() {
           </div>
         </section>
       )}
+
+      <CreateCurriculumDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={refresh}
+      />
     </div>
   )
 }

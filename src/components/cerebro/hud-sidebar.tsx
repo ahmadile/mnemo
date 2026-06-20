@@ -1,12 +1,13 @@
 'use client'
 
 import { useUI, ViewName } from '@/store/ui'
-import { Brain, Code2, Users, Home, Network } from 'lucide-react'
+import { Brain, Code2, Users, Home, Network, Gamepad2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems: { id: ViewName; label: string; icon: any; desc: string }[] = [
   { id: 'dashboard', label: 'Carte', icon: Home, desc: 'Vue du monde' },
-  { id: 'world', label: 'Monde', icon: Network, desc: 'Agents & communications' },
+  { id: 'world', label: 'Réseau', icon: Network, desc: 'Agents & communications' },
+  { id: 'virtual-world', label: 'Monde 2D', icon: Gamepad2, desc: 'Simulation RPG' },
   { id: 'agents', label: 'Agents', icon: Users, desc: 'Vos moi virtuels' },
 ]
 
@@ -16,10 +17,13 @@ export function HudSidebar() {
   const openAgents = useUI((s) => s.openAgents)
   const openWorld = useUI((s) => s.openWorld)
 
+  const openVirtualWorld = useUI((s) => s.openVirtualWorld)
+
   const handleClick = (id: ViewName) => {
     if (id === 'dashboard') goDashboard()
     else if (id === 'agents') openAgents()
     else if (id === 'world') openWorld()
+    else if (id === 'virtual-world') openVirtualWorld()
   }
 
   return (

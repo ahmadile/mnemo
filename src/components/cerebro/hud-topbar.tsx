@@ -49,6 +49,7 @@ export function HudTopbar() {
     agents: 'Vos agents virtuels',
     'agent-chat': 'Conversation',
     world: 'MONDE DES AGENTS',
+    'virtual-world': 'MONDE VIRTUEL 2D',
   }
 
   return (
@@ -69,6 +70,7 @@ export function HudTopbar() {
               {view === 'agents' && 'Galerie'}
               {view === 'agent-chat' && 'Chat mémoire'}
               {view === 'world' && 'Réseau & communications'}
+              {view === 'virtual-world' && 'Simulation RPG top-down'}
             </p>
           </div>
         </div>

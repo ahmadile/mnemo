@@ -23,6 +23,8 @@ import {
   Link2,
   Download,
   FileText,
+  Youtube,
+  ChevronDown,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -77,6 +79,9 @@ export function CurriculumView() {
   const [generating, setGenerating] = useState(false)
   const [extracting, setExtracting] = useState(false)
   const [extractedTitle, setExtractedTitle] = useState<string | null>(null)
+  const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [youtubeLoading, setYoutubeLoading] = useState(false)
+  const [showYoutube, setShowYoutube] = useState(false)
 
   useEffect(() => {
     if (!curriculumId) {
@@ -165,6 +170,38 @@ export function CurriculumView() {
       toast.error(e.message)
     } finally {
       setExtracting(false)
+    }
+  }
+
+  async function handleYouTube() {
+    if (!youtubeUrl.trim()) {
+      toast.error('Collez une URL YouTube')
+      return
+    }
+    setYoutubeLoading(true)
+    setExtractedTitle(null)
+    try {
+      const res = await fetch('/api/youtube', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: youtubeUrl.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Extraction impossible')
+      if (!data.transcript || data.transcript.length < 50) {
+        throw new Error('Transcription trop courte ou vide')
+      }
+      setCourseContent(data.transcript)
+      setCourseLink(youtubeUrl.trim())
+      setExtractedTitle(`YouTube: ${data.title || 'Vidéo'}`)
+      toast.success(
+        `Transcription extraite${data.title ? ` : ${data.title}` : ''} (${data.length} caractères${data.truncated ? ', tronquée à 8000' : ''})`
+      )
+      setShowYoutube(false)
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setYoutubeLoading(false)
     }
   }
 
@@ -301,6 +338,48 @@ export function CurriculumView() {
             <p className="text-[10px] text-zinc-600 mt-1">
               L'IA lit la page et remplit le champ contenu automatiquement
             </p>
+          </div>
+
+          {/* YouTube import (collapsible) */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowYoutube(!showYoutube)}
+              className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+            >
+              <ChevronDown className={`w-3 h-3 transition-transform ${showYoutube ? 'rotate-180' : ''}`} />
+              <Youtube className="w-3.5 h-3.5 text-rose-400" />
+              Importer une transcription YouTube
+            </button>
+            {showYoutube && (
+              <div className="mt-2 space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={youtubeUrl}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="flex-1 bg-zinc-950/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 font-mono text-xs"
+                  />
+                  <Button
+                    onClick={handleYouTube}
+                    disabled={youtubeLoading || !youtubeUrl.trim()}
+                    variant="outline"
+                    className="border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300"
+                    type="button"
+                  >
+                    {youtubeLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    ) : (
+                      <Youtube className="w-3.5 h-3.5 mr-1.5" />
+                    )}
+                    Transcrire
+                  </Button>
+                </div>
+                <p className="text-[10px] text-zinc-600">
+                  Pour les tutoriels longs (10h+). La transcription est tronquée à 8000 caractères et l'IA génère une mission synthétisant les points clés.
+                </p>
+              </div>
+            )}
           </div>
 
           {extractedTitle && (

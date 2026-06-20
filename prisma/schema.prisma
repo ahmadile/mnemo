@@ -13,12 +13,14 @@ datasource db {
 model Curriculum {
   id          String   @id @default(cuid())
   name        String
-  domain      String   @unique // python, sql, ai-engineering, data-science, web-dev
+  domain      String   @unique // python, sql, ai-engineering, data-science, web-dev, or custom slug
   description String
   icon        String
   color       String
   xp          Int      @default(0)
   level       Int      @default(1)
+  isCustom    Boolean  @default(false) // true if user-created (not one of the 5 defaults)
+  language    String   @default("python") // default code language for this curriculum's missions
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   missions    Mission[]
