@@ -152,10 +152,33 @@ export function DashboardView() {
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[1, 2, 3].map((i) => (
               <Card key={i} className="p-6 h-48 animate-pulse bg-zinc-900/40 border-zinc-800" />
             ))}
           </div>
+        ) : curricula.length === 0 ? (
+          <Card className="p-8 border-dashed border-zinc-700 bg-zinc-900/20 text-center">
+            <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
+              <Sparkles className="w-7 h-7 text-emerald-400" />
+            </div>
+            <h3 className="font-bold text-zinc-200 mb-2">Aucun cursus pour l'instant</h3>
+            <p className="text-xs text-zinc-500 max-w-md mx-auto mb-5 leading-relaxed">
+              Deux façons de commencer : installez l'extension Chrome pour capturer automatiquement
+              vos cours DataCamp, ou créez manuellement un cursus personnalisé.
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <button
+                onClick={() => setCreateOpen(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-semibold"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Créer un cursus
+              </button>
+            </div>
+            <p className="text-[10px] text-zinc-600 mt-4">
+              Astuce : utilisez l'extension Chrome en haut de cette page pour importer vos cours DataCamp automatiquement.
+            </p>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {curricula.map((c) => (

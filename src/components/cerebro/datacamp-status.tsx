@@ -44,15 +44,14 @@ export function DatacampStatus() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h3 className="font-bold text-sm">Intégration DataCamp</h3>
-              <Badge className="bg-amber-500/10 text-amber-300 border-amber-500/30 text-[9px]">
-                <AlertCircle className="w-2.5 h-2.5 mr-1" />
-                Extension requise
+              <Badge className="bg-emerald-500/10 text-emerald-300 border-emerald-500/30 text-[9px]">
+                v1.2 · Auto-détection
               </Badge>
             </div>
             <p className="text-xs text-zinc-400 leading-relaxed mb-3">
-              DataCamp n'a pas d'API publique. Pour capturer vos cours automatiquement,
-              installez l'extension Chrome "Mnemo Bridge". Une fois installée, naviguez sur
-              DataCamp et cliquez sur l'icône Mnemo dans votre barre d'extensions.
+              DataCamp n'a pas d'API publique. L'extension Chrome "Mnemo Bridge" détecte automatiquement
+              le cours et le cursus que vous suivez, crée le cursus Mnemo correspondant, et génère une
+              mission. Aucune configuration manuelle requise.
             </p>
             <div className="flex flex-wrap gap-2">
               <button
