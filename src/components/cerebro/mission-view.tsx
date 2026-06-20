@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CodeEditor } from '@/components/cerebro/code-editor'
+import { runPython, type RunResult } from '@/lib/pyodide-runner'
 import {
   ArrowLeft,
   Target,
@@ -21,6 +22,10 @@ import {
   RotateCcw,
   Copy,
   Check,
+  Play,
+  Terminal,
+  Clock,
+  Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -63,6 +68,9 @@ export function MissionView() {
   const [missionCompleted, setMissionCompleted] = useState(false)
   const [showHint, setShowHint] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [runResult, setRunResult] = useState<RunResult | null>(null)
+  const [running, setRunning] = useState(false)
+  const [pyodideLoading, setPyodideLoading] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -128,6 +136,37 @@ export function MissionView() {
       toast.error(e.message)
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  // Run Python code in-browser via Pyodide
+  async function handleRun() {
+    if (!code.trim() || running) return
+    setRunning(true)
+    setRunResult(null)
+    setPyodideLoading(true)
+
+    try {
+      const result = await runPython(code)
+      setRunResult(result)
+      if (result.success) {
+        toast.success(`Code exécuté en ${result.executionTime}ms`)
+      } else {
+        toast.error(`${result.errorType}: ${result.error}`)
+      }
+    } catch (e: any) {
+      toast.error('Erreur Pyodide: ' + e.message)
+      setRunResult({
+        success: false,
+        stdout: '',
+        stderr: e.message,
+        error: e.message,
+        errorType: 'PyodideError',
+        executionTime: 0,
+      })
+    } finally {
+      setRunning(false)
+      setPyodideLoading(false)
     }
   }
 
@@ -307,6 +346,26 @@ export function MissionView() {
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3">
+        {mission.language === 'Python' && (
+          <Button
+            onClick={handleRun}
+            disabled={running || !code.trim()}
+            variant="outline"
+            className="border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-300 h-11"
+          >
+            {running || pyodideLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {pyodideLoading ? 'Chargement Python...' : 'Exécution...'}
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4 mr-2" />
+                Exécuter
+              </>
+            )}
+          </Button>
+        )}
         <Button
           onClick={handleSubmit}
           disabled={submitting || !code.trim()}
@@ -333,6 +392,49 @@ export function MissionView() {
           {showHint ? "Cacher l'indice" : 'Indice'}
         </Button>
       </div>
+
+      {/* Output panel (shows Python execution results) */}
+      {runResult && (
+        <Card className={`overflow-hidden border-2 ${runResult.success ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-rose-500/30 bg-rose-500/5'}`}>
+          <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800/60 bg-zinc-950/40">
+            <div className="flex items-center gap-2">
+              <Terminal className={`w-3.5 h-3.5 ${runResult.success ? 'text-emerald-400' : 'text-rose-400'}`} />
+              <span className="text-xs font-mono text-zinc-400">
+                {runResult.success ? 'Sortie' : 'Erreur'}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              {runResult.executionTime > 0 && (
+                <span className="text-[10px] text-zinc-500 flex items-center gap-1">
+                  <Clock className="w-2.5 h-2.5" />
+                  {runResult.executionTime}ms
+                </span>
+              )}
+              <span className={`text-[10px] flex items-center gap-1 ${runResult.success ? 'text-emerald-400' : 'text-rose-400'}`}>
+                <Zap className="w-2.5 h-2.5" />
+                Python (Pyodide WASM)
+              </span>
+            </div>
+          </div>
+          <div className="p-4 font-mono text-xs">
+            {runResult.stdout && (
+              <pre className="text-emerald-300 whitespace-pre-wrap mb-2">{runResult.stdout}</pre>
+            )}
+            {runResult.stderr && (
+              <pre className="text-amber-400 whitespace-pre-wrap mb-2">{runResult.stderr}</pre>
+            )}
+            {!runResult.success && runResult.error && (
+              <div className="text-rose-400">
+                <span className="font-bold">{runResult.errorType}: </span>
+                {runResult.error}
+              </div>
+            )}
+            {!runResult.stdout && !runResult.stderr && !runResult.error && (
+              <pre className="text-zinc-500 italic">(aucune sortie)</pre>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Hint */}
       {showHint && mission.hint && (
