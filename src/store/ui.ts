@@ -6,6 +6,7 @@ export type ViewName =
   | 'virtual-world'  // Monde 2D Phaser
   | 'agents'         // Galerie d'agents
   | 'missions'       // Toutes les missions (tous cursus)
+  | 'achievements'   // Badges et trophées
   | 'settings'       // Réglages
   | 'curriculum'     // Détail d'un cursus (depuis la carte)
   | 'mission'        // Mission en cours
@@ -21,6 +22,7 @@ interface UIState {
   openVirtualWorld: () => void
   openAgents: () => void
   openMissions: () => void
+  openAchievements: () => void
   openSettings: () => void
   openCurriculum: (id: string) => void
   openMission: (id: string, curriculumId?: string) => void
@@ -37,6 +39,7 @@ export const useUI = create<UIState>((set) => ({
   openVirtualWorld: () => set({ view: 'virtual-world' }),
   openAgents: () => set({ view: 'agents' }),
   openMissions: () => set({ view: 'missions' }),
+  openAchievements: () => set({ view: 'achievements' }),
   openSettings: () => set({ view: 'settings' }),
   openCurriculum: (id) => set({ view: 'curriculum', activeCurriculumId: id }),
   openMission: (id, curriculumId) =>

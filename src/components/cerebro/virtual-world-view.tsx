@@ -5,6 +5,7 @@ import { useUI } from '@/store/ui'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { generateAvatarPng } from '@/components/cerebro/avatar'
 import {
   ArrowLeft,
   Gamepad2,
@@ -104,6 +105,29 @@ export function VirtualWorldView() {
           super({ key: 'mnemo' })
         }
 
+        async preload() {
+          // Generate DiceBear avatars as PNG textures
+          // Player avatar
+          try {
+            const playerPng = await generateAvatarPng('player-mnemo', undefined, 64)
+            this.textures.addBase64('avatar-player', playerPng)
+            await new Promise((r) => this.textures.once('addtexture', r))
+          } catch (e) {
+            console.warn('[Mnemo] Failed to load player avatar:', e)
+          }
+
+          // NPC avatars
+          for (const npc of npcs) {
+            try {
+              const png = await generateAvatarPng(npc.id, npc.domain, 64)
+              this.textures.addBase64(`avatar-${npc.id}`, png)
+              await new Promise((r) => this.textures.once('addtexture', r))
+            } catch (e) {
+              console.warn(`[Mnemo] Failed to load avatar for ${npc.id}:`, e)
+            }
+          }
+        }
+
         create() {
           const W = GAME_W
           const H = GAME_H
@@ -164,16 +188,21 @@ export function VirtualWorldView() {
           this.player = this.add.container(W / 2, H / 2)
           // Shadow
           const shadow = this.add.ellipse(0, 18, 32, 10, 0x000000, 0.4)
-          // Body
-          this.playerCircle = this.add.circle(0, 0, 18, 0x10b981, 1)
-          this.playerCircle.setStrokeStyle(2, 0xffffff)
-          // Letter
-          const letter = this.add.text(0, 0, 'M', {
-            fontFamily: 'sans-serif',
-            fontSize: '16px',
-            color: '#0a0a0a',
-            fontStyle: 'bold',
-          }).setOrigin(0.5)
+          // Avatar (DiceBear texture) or fallback circle
+          let playerBody: Phaser.GameObjects.GameObject
+          if (this.textures.exists('avatar-player')) {
+            const img = this.add.image(0, 0, 'avatar-player')
+            img.setDisplaySize(36, 36)
+            // White ring around avatar
+            const ring = this.add.circle(0, 0, 20, 0x000000, 0)
+            ring.setStrokeStyle(2, 0x10b981, 1)
+            this.player.add(ring)
+            playerBody = img
+          } else {
+            this.playerCircle = this.add.circle(0, 0, 18, 0x10b981, 1)
+            this.playerCircle.setStrokeStyle(2, 0xffffff)
+            playerBody = this.playerCircle
+          }
           // Label
           this.playerLabel = this.add.text(0, -30, 'VOUS', {
             fontFamily: 'sans-serif',
@@ -182,7 +211,7 @@ export function VirtualWorldView() {
             fontStyle: 'bold',
           }).setOrigin(0.5)
 
-          this.player.add([shadow, this.playerCircle, letter, this.playerLabel])
+          this.player.add([shadow, playerBody, this.playerLabel])
 
           // Aura (pulsing)
           const aura = this.add.circle(W / 2, H / 2, 28, 0x10b981, 0.15)
@@ -243,20 +272,38 @@ export function VirtualWorldView() {
           const container = this.add.container(npc.x, npc.y)
           // Shadow
           const shadow = this.add.ellipse(0, 14, 26, 8, 0x000000, 0.4)
-          // Body
-          const colorNum = parseInt(npc.color.replace('#', ''), 16)
-          const circle = this.add.circle(0, 0, 14, colorNum, 1)
           const isQuestGiver = npc.kind === 'quest-giver'
-          circle.setStrokeStyle(isQuestGiver ? 2 : 1, isQuestGiver ? 0xfbbf24 : 0xffffff)
-          circle.setInteractive({ useHandCursor: true })
-          circle.setData('npcId', npc.id)
-          // Letter
-          const letter = this.add.text(0, 0, npc.name.charAt(0).toUpperCase(), {
-            fontFamily: 'sans-serif',
-            fontSize: '13px',
-            color: '#0a0a0a',
-            fontStyle: 'bold',
-          }).setOrigin(0.5)
+          const colorNum = parseInt(npc.color.replace('#', ''), 16)
+
+          // Body: DiceBear avatar texture if available, else colored circle
+          let body: Phaser.GameObjects.GameObject
+          const avatarKey = `avatar-${npc.id}`
+          if (this.textures.exists(avatarKey)) {
+            const img = this.add.image(0, 0, avatarKey)
+            img.setDisplaySize(32, 32)
+            img.setInteractive({ useHandCursor: true })
+            img.setData('npcId', npc.id)
+            // Ring around avatar
+            const ring = this.add.circle(0, 0, 18, 0x000000, 0)
+            ring.setStrokeStyle(isQuestGiver ? 2 : 1.5, isQuestGiver ? 0xfbbf24 : colorNum)
+            container.add(ring)
+            body = img
+          } else {
+            // Fallback: colored circle
+            const circle = this.add.circle(0, 0, 14, colorNum, 1)
+            circle.setStrokeStyle(isQuestGiver ? 2 : 1, isQuestGiver ? 0xfbbf24 : 0xffffff)
+            circle.setInteractive({ useHandCursor: true })
+            circle.setData('npcId', npc.id)
+            // Letter
+            const letter = this.add.text(0, 0, npc.name.charAt(0).toUpperCase(), {
+              fontFamily: 'sans-serif',
+              fontSize: '13px',
+              color: '#0a0a0a',
+              fontStyle: 'bold',
+            }).setOrigin(0.5)
+            container.add(letter)
+            body = circle
+          }
           // Name label
           const label = this.add.text(0, -24, npc.name, {
             fontFamily: 'sans-serif',
@@ -292,8 +339,8 @@ export function VirtualWorldView() {
             container.add(questMark)
           }
 
-          container.add([shadow, circle, letter, label])
-          this.npcObjects.set(npc.id, { container, circle, label, data: npc })
+          container.add([shadow, body, label])
+          this.npcObjects.set(npc.id, { container, circle: body as any, label, data: npc })
 
           // Wander behavior: tween to random nearby position
           this.scheduleWander(npc.id)

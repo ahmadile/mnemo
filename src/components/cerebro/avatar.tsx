@@ -89,6 +89,7 @@ export function Avatar({
 }
 
 // Helper to generate a DiceBear PNG data URL (used by Phaser for textures)
+// DiceBear v9 only produces SVG; we convert to PNG via canvas in the browser
 export async function generateAvatarPng(seed: string, domain?: string, size = 64): Promise<string> {
   let avatarStyle
   if (domain && DOMAIN_STYLES[domain]) {
@@ -102,7 +103,35 @@ export async function generateAvatarPng(seed: string, domain?: string, size = 64
     size,
     radius: 50,
   })
-  return avatar.toPng()
+  // Get SVG string
+  const svgString = avatar.toString()
+
+  // Convert SVG → PNG via browser canvas
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
+    const url = URL.createObjectURL(svgBlob)
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = size
+      canvas.height = size
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        URL.revokeObjectURL(url)
+        reject(new Error('Canvas 2D context not available'))
+        return
+      }
+      ctx.drawImage(img, 0, 0, size, size)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/png'))
+    }
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Failed to load SVG into image'))
+    }
+    img.src = url
+  })
 }
 
 // Helper to generate SVG string (for Phaser textures)

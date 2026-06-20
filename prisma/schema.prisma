@@ -102,3 +102,19 @@ model DailyQuest {
   completedAt DateTime?
   createdAt   DateTime @default(now())
 }
+
+// Achievements (badges) débloqués par l'utilisateur
+// Détection automatique basée sur les critères (missionsCount, streakDays, etc.)
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique // "first_mission", "week_streak", "first_agent", etc.
+  title       String
+  description String
+  icon        String   // emoji or icon name
+  color       String   // hex color
+  category    String   // "missions" | "streak" | "agents" | "exploration" | "mastery"
+  xpReward    Int      @default(50)
+  unlockedAt  DateTime?
+  createdAt   DateTime @default(now())
+}
+
