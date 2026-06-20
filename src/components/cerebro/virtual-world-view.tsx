@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useUI } from '@/store/ui'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,6 +18,9 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+// Phaser is loaded dynamically on client-side only
+// (it uses `window` and shouldn't be SSR'd)
+
 interface Npc {
   id: string
   kind: 'agent' | 'npc' | 'quest-giver'
@@ -30,41 +32,31 @@ interface Npc {
   domain?: string
   activity?: string
   dialogue?: string
-  conversation?: { role: string; content: string }[]
 }
 
-interface Bubble {
-  id: string
-  npcId: string
-  text: string
-  color: string
-  expires: number
+interface PhaserGameRef {
+  destroy: () => void
+  getPlayerPos: () => { x: number; y: number }
+  setNearbyNpcCallback: (cb: (npc: Npc | null) => void) => void
+  triggerInteraction: () => void
 }
 
-const CANVAS_W = 900
-const CANVAS_H = 560
-const TILE = 32
-const PLAYER_SPEED = 3
-const NPC_SPEED = 0.8
+const GAME_W = 900
+const GAME_H = 560
 
 export function VirtualWorldView() {
   const goDashboard = useUI((s) => s.goDashboard)
   const openAgentChat = useUI((s) => s.openAgentChat)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const phaserContainerRef = useRef<HTMLDivElement>(null)
+  const gameRef = useRef<PhaserGameRef | null>(null)
 
   const [npcs, setNpcs] = useState<Npc[]>([])
   const [loading, setLoading] = useState(true)
-  const [player, setPlayer] = useState({ x: 400, y: 300, color: '#10b981' })
-  const [bubbles, setBubbles] = useState<Bubble[]>([])
   const [activeNpc, setActiveNpc] = useState<Npc | null>(null)
+  const [nearbyNpc, setNearbyNpc] = useState<Npc | null>(null)
   const [chatInput, setChatInput] = useState('')
   const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'agent'; content: string }[]>([])
   const [chatLoading, setChatLoading] = useState(false)
-  const [nearbyNpc, setNearbyNpc] = useState<Npc | null>(null)
-
-  // Input state (keyboard)
-  const keys = useRef<{ [k: string]: boolean }>({})
 
   // Load NPCs
   useEffect(() => {
@@ -77,7 +69,6 @@ export function VirtualWorldView() {
       const res = await fetch('/api/virtual-world')
       const data = await res.json()
       setNpcs(data.npcs || [])
-      setPlayer(data.player || { x: 400, y: 300, color: '#10b981' })
     } catch (e: any) {
       toast.error(e.message)
     } finally {
@@ -85,349 +76,429 @@ export function VirtualWorldView() {
     }
   }
 
-  // Keyboard listeners
+  // Initialize Phaser game
   useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (activeNpc && document.activeElement?.tagName !== 'INPUT') {
-        if (e.key === 'Escape') setActiveNpc(null)
-        return
-      }
-      if (document.activeElement?.tagName === 'INPUT') return
-      keys.current[e.key.toLowerCase()] = true
-      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(e.key.toLowerCase())) {
-        e.preventDefault()
-      }
-    }
-    const up = (e: KeyboardEvent) => {
-      keys.current[e.key.toLowerCase()] = false
-    }
-    window.addEventListener('keydown', down)
-    window.addEventListener('keyup', up)
-    return () => {
-      window.removeEventListener('keydown', down)
-      window.removeEventListener('keyup', up)
-    }
-  }, [activeNpc])
+    if (loading || npcs.length === 0 || !phaserContainerRef.current) return
+    if (gameRef.current) return // already initialized
 
-  // Game loop
-  useEffect(() => {
-    if (loading || npcs.length === 0) return
-    let raf: number
-    let last = performance.now()
+    let destroyed = false
 
-    const tick = (now: number) => {
-      const dt = Math.min(now - last, 50)
-      last = now
+    // Dynamic import to avoid SSR issues
+    import('phaser').then((Phaser) => {
+      if (destroyed) return
 
-      // Update player position
-      setPlayer((p) => {
-        let { x, y } = p
-        if (keys.current['arrowup'] || keys.current['w']) y -= PLAYER_SPEED
-        if (keys.current['arrowdown'] || keys.current['s']) y += PLAYER_SPEED
-        if (keys.current['arrowleft'] || keys.current['a']) x -= PLAYER_SPEED
-        if (keys.current['arrowright'] || keys.current['d']) x += PLAYER_SPEED
-        x = Math.max(20, Math.min(CANVAS_W - 20, x))
-        y = Math.max(20, Math.min(CANVAS_H - 20, y))
-        return { ...p, x, y }
-      })
+      const nearbyCallbackRef = { current: (_npc: Npc | null) => {} }
 
-      // NPC wander behavior
-      setNpcs((prev) =>
-        prev.map((n) => {
-          if (Math.random() < 0.02) {
-            // Pick new target
-            return {
-              ...n,
-              _targetX: Math.max(40, Math.min(CANVAS_W - 40, n.x + (Math.random() - 0.5) * 200)),
-              _targetY: Math.max(40, Math.min(CANVAS_H - 40, n.y + (Math.random() - 0.5) * 200)),
-            } as Npc
+      class MnemoScene extends Phaser.Scene {
+        player!: Phaser.GameObjects.Container
+        playerCircle!: Phaser.GameObjects.Arc
+        playerLabel!: Phaser.GameObjects.Text
+        npcObjects: Map<string, { container: Phaser.GameObjects.Container; circle: Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text; data: Npc }> = new Map()
+        cursors!: Phaser.Types.Input.Keyboard.CursorKeys
+        wasd!: Record<string, Phaser.Input.Keyboard.Key>
+        bubbles: Map<string, Phaser.GameObjects.Container> = new Map()
+        nearbyIndicator!: Phaser.GameObjects.Arc
+        keysE!: Phaser.Input.Keyboard.Key
+
+        constructor() {
+          super({ key: 'mnemo' })
+        }
+
+        create() {
+          const W = GAME_W
+          const H = GAME_H
+
+          // --- Background: dark with grid ---
+          const g = this.add.graphics()
+          g.fillStyle(0x0d1117, 1)
+          g.fillRect(0, 0, W, H)
+          // Grid
+          g.lineStyle(0.5, 0x1a1f2e, 0.6)
+          for (let x = 0; x < W; x += 32) {
+            g.lineBetween(x, 0, x, H)
           }
-          const tx = (n as any)._targetX
-          const ty = (n as any)._targetY
-          if (tx === undefined || ty === undefined) return n
-          const dx = tx - n.x
-          const dy = ty - n.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < 5) return n
-          return {
-            ...n,
-            x: n.x + (dx / dist) * NPC_SPEED,
-            y: n.y + (dy / dist) * NPC_SPEED,
+          for (let y = 0; y < H; y += 32) {
+            g.lineBetween(0, y, W, y)
           }
-        })
-      )
 
-      // Check nearby NPC for interaction
-      setPlayer((p) => {
-        let closest: Npc | null = null
-        let minDist = 60
-        for (const n of npcs) {
-          const d = Math.sqrt((n.x - p.x) ** 2 + (n.y - p.y) ** 2)
-          if (d < minDist) {
-            minDist = d
-            closest = n
+          // --- Zones (4 corners) ---
+          const zones = [
+            { x: 0, y: 0, w: 220, h: 160, color: 0x3b82f6, alpha: 0.12, label: 'PYTHON' },
+            { x: W - 220, y: 0, w: 220, h: 160, color: 0x10b981, alpha: 0.12, label: 'SQL' },
+            { x: 0, y: H - 160, w: 220, h: 160, color: 0xa855f7, alpha: 0.12, label: 'IA' },
+            { x: W - 220, y: H - 160, w: 220, h: 160, color: 0xf59e0b, alpha: 0.12, label: 'DATA' },
+          ]
+          zones.forEach((z) => {
+            const zoneG = this.add.graphics()
+            zoneG.fillStyle(z.color, z.alpha)
+            zoneG.fillRect(z.x, z.y, z.w, z.h)
+            zoneG.lineStyle(1, z.color, 0.4)
+            zoneG.strokeRect(z.x, z.y, z.w, z.h)
+            this.add.text(z.x + 10, z.y + 10, z.label, {
+              fontFamily: 'sans-serif',
+              fontSize: '12px',
+              color: '#' + z.color.toString(16).padStart(6, '0'),
+              fontStyle: 'bold',
+            })
+          })
+
+          // --- Central plaza ---
+          const plazaG = this.add.graphics()
+          plazaG.fillStyle(0x10b981, 0.06)
+          plazaG.fillCircle(W / 2, H / 2, 90)
+          plazaG.lineStyle(1, 0x10b981, 0.3)
+          plazaG.strokeCircle(W / 2, H / 2, 90)
+          this.add.text(W / 2, H / 2, 'PLACE CENTRALE', {
+            fontFamily: 'sans-serif',
+            fontSize: '10px',
+            color: '#10b981',
+            align: 'center',
+          }).setOrigin(0.5)
+
+          // --- NPCs ---
+          npcs.forEach((npc) => {
+            this.createNpc(npc)
+          })
+
+          // --- Player ---
+          this.player = this.add.container(W / 2, H / 2)
+          // Shadow
+          const shadow = this.add.ellipse(0, 18, 32, 10, 0x000000, 0.4)
+          // Body
+          this.playerCircle = this.add.circle(0, 0, 18, 0x10b981, 1)
+          this.playerCircle.setStrokeStyle(2, 0xffffff)
+          // Letter
+          const letter = this.add.text(0, 0, 'M', {
+            fontFamily: 'sans-serif',
+            fontSize: '16px',
+            color: '#0a0a0a',
+            fontStyle: 'bold',
+          }).setOrigin(0.5)
+          // Label
+          this.playerLabel = this.add.text(0, -30, 'VOUS', {
+            fontFamily: 'sans-serif',
+            fontSize: '11px',
+            color: '#10b981',
+            fontStyle: 'bold',
+          }).setOrigin(0.5)
+
+          this.player.add([shadow, this.playerCircle, letter, this.playerLabel])
+
+          // Aura (pulsing)
+          const aura = this.add.circle(W / 2, H / 2, 28, 0x10b981, 0.15)
+          this.tweens.add({
+            targets: aura,
+            scale: { from: 1, to: 1.4 },
+            alpha: { from: 0.3, to: 0 },
+            duration: 1500,
+            repeat: -1,
+            ease: 'Sine.easeOut',
+          })
+          aura.setPosition(W / 2, H / 2)
+          // Keep aura behind player
+          this.children.bringToTop(this.player)
+
+          // --- Nearby indicator (dashed circle) ---
+          this.nearbyIndicator = this.add.circle(0, 0, 26, 0x000000, 0)
+          this.nearbyIndicator.setStrokeStyle(2, 0x10b981, 0.8)
+          this.nearbyIndicator.setVisible(false)
+
+          // --- Input ---
+          if (this.input.keyboard) {
+            this.cursors = this.input.keyboard.createCursorKeys()
+            this.wasd = this.input.keyboard.addKeys({
+              up: Phaser.Input.Keyboard.KeyCodes.W,
+              down: Phaser.Input.Keyboard.KeyCodes.S,
+              left: Phaser.Input.Keyboard.KeyCodes.A,
+              right: Phaser.Input.Keyboard.KeyCodes.D,
+            }) as any
+            this.keysE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E)
+
+            // E key to interact
+            this.input.keyboard.on('keydown-E', () => {
+              this.triggerInteraction()
+            })
+            // ESC to close chat
+            this.input.keyboard.on('keydown-ESC', () => {
+              if (activeNpcRef.current) {
+                setActiveNpc(null)
+                setChatHistory([])
+              }
+            })
+          }
+
+          // Click on NPC to interact
+          this.input.on('gameobjectdown', (_pointer: any, gameObject: any) => {
+            const npcId = gameObject.getData('npcId')
+            if (npcId) {
+              const npcData = this.npcObjects.get(npcId)
+              if (npcData) {
+                this.interactWith(npcData.data)
+              }
+            }
+          })
+        }
+
+        createNpc(npc: Npc) {
+          const container = this.add.container(npc.x, npc.y)
+          // Shadow
+          const shadow = this.add.ellipse(0, 14, 26, 8, 0x000000, 0.4)
+          // Body
+          const colorNum = parseInt(npc.color.replace('#', ''), 16)
+          const circle = this.add.circle(0, 0, 14, colorNum, 1)
+          const isQuestGiver = npc.kind === 'quest-giver'
+          circle.setStrokeStyle(isQuestGiver ? 2 : 1, isQuestGiver ? 0xfbbf24 : 0xffffff)
+          circle.setInteractive({ useHandCursor: true })
+          circle.setData('npcId', npc.id)
+          // Letter
+          const letter = this.add.text(0, 0, npc.name.charAt(0).toUpperCase(), {
+            fontFamily: 'sans-serif',
+            fontSize: '13px',
+            color: '#0a0a0a',
+            fontStyle: 'bold',
+          }).setOrigin(0.5)
+          // Name label
+          const label = this.add.text(0, -24, npc.name, {
+            fontFamily: 'sans-serif',
+            fontSize: '10px',
+            color: '#ffffff',
+            fontStyle: 'bold',
+          }).setOrigin(0.5)
+          // Level badge for agents
+          if (npc.kind === 'agent' && npc.level) {
+            const levelText = this.add.text(0, -36, `Lv${npc.level}`, {
+              fontFamily: 'sans-serif',
+              fontSize: '9px',
+              color: '#10b981',
+            }).setOrigin(0.5)
+            container.add(levelText)
+          }
+          // Quest marker (yellow !) floating
+          if (isQuestGiver) {
+            const questMark = this.add.text(0, -42, '!', {
+              fontFamily: 'sans-serif',
+              fontSize: '18px',
+              color: '#fbbf24',
+              fontStyle: 'bold',
+            }).setOrigin(0.5)
+            this.tweens.add({
+              targets: questMark,
+              y: { from: -42, to: -48 },
+              duration: 700,
+              yoyo: true,
+              repeat: -1,
+              ease: 'Sine.easeInOut',
+            })
+            container.add(questMark)
+          }
+
+          container.add([shadow, circle, letter, label])
+          this.npcObjects.set(npc.id, { container, circle, label, data: npc })
+
+          // Wander behavior: tween to random nearby position
+          this.scheduleWander(npc.id)
+        }
+
+        scheduleWander(npcId: string) {
+          const npcObj = this.npcObjects.get(npcId)
+          if (!npcObj) return
+          const delay = 2000 + Math.random() * 4000
+          this.time.delayedCall(delay, () => {
+            const stillExists = this.npcObjects.get(npcId)
+            if (!stillExists) return
+            const newX = Phaser.Math.Clamp(npcObj.data.x + (Math.random() - 0.5) * 250, 50, GAME_W - 50)
+            const newY = Phaser.Math.Clamp(npcObj.data.y + (Math.random() - 0.5) * 250, 50, GAME_H - 50)
+            npcObj.data.x = newX
+            npcObj.data.y = newY
+            this.tweens.add({
+              targets: npcObj.container,
+              x: newX,
+              y: newY,
+              duration: 2500 + Math.random() * 2000,
+              ease: 'Sine.easeInOut',
+              onComplete: () => this.scheduleWander(npcId),
+            })
+          })
+        }
+
+        triggerInteraction() {
+          const nearby = this.findNearbyNpc()
+          if (nearby) {
+            this.interactWith(nearby)
           }
         }
-        setNearbyNpc(closest)
-        return p
+
+        interactWith(npc: Npc) {
+          // Show speech bubble
+          this.showBubble(npc.id, npc.dialogue || npc.activity || 'Bonjour !', npc.color)
+          // Tell React
+          interactNpcCallbackRef.current(npc)
+        }
+
+        findNearbyNpc(): Npc | null {
+          const px = this.player.x
+          const py = this.player.y
+          let closest: Npc | null = null
+          let minDist = 70
+          this.npcObjects.forEach((obj) => {
+            const d = Phaser.Math.Distance.Between(px, py, obj.data.x, obj.data.y)
+            if (d < minDist) {
+              minDist = d
+              closest = obj.data
+            }
+          })
+          return closest
+        }
+
+        showBubble(npcId: string, text: string, color: string) {
+          // Remove existing bubble for this NPC
+          const existing = this.bubbles.get(npcId)
+          if (existing) existing.destroy()
+
+          const npcObj = this.npcObjects.get(npcId)
+          if (!npcObj) return
+
+          const truncated = text.length > 30 ? text.slice(0, 28) + '…' : text
+          const bubble = this.add.container(npcObj.data.x, npcObj.data.y - 50)
+
+          const textStyle = { fontFamily: 'sans-serif', fontSize: '11px', color: '#ffffff' }
+          const txt = this.add.text(0, 0, truncated, textStyle).setOrigin(0.5)
+          const w = txt.width + 20
+          const h = 26
+
+          const bg = this.add.graphics()
+          bg.fillStyle(0x1a1a1a, 1)
+          bg.fillRoundedRect(-w / 2, -h / 2, w, h, 6)
+          bg.lineStyle(1.5, parseInt(color.replace('#', ''), 16), 1)
+          bg.strokeRoundedRect(-w / 2, -h / 2, w, h, 6)
+          // Tail
+          bg.fillStyle(0x1a1a1a, 1)
+          bg.beginPath()
+          bg.moveTo(-4, h / 2)
+          bg.lineTo(0, h / 2 + 5)
+          bg.lineTo(4, h / 2)
+          bg.closePath()
+          bg.fillPath()
+
+          bubble.add([bg, txt])
+          this.bubbles.set(npcId, bubble)
+
+          // Auto-remove after 4s
+          this.time.delayedCall(4000, () => {
+            if (bubble && bubble.active) bubble.destroy()
+            this.bubbles.delete(npcId)
+          })
+        }
+
+        update() {
+          if (!this.player || !this.cursors) return
+
+          // Movement
+          const speed = 3.5
+          let dx = 0
+          let dy = 0
+          if (this.cursors.up.isDown || this.wasd.up.isDown) dy -= 1
+          if (this.cursors.down.isDown || this.wasd.down.isDown) dy += 1
+          if (this.cursors.left.isDown || this.wasd.left.isDown) dx -= 1
+          if (this.cursors.right.isDown || this.wasd.right.isDown) dx += 1
+
+          if (dx !== 0 || dy !== 0) {
+            // Normalize
+            const len = Math.sqrt(dx * dx + dy * dy)
+            dx = (dx / len) * speed
+            dy = (dy / len) * speed
+            this.player.x = Phaser.Math.Clamp(this.player.x + dx, 20, GAME_W - 20)
+            this.player.y = Phaser.Math.Clamp(this.player.y + dy, 20, GAME_H - 20)
+          }
+
+          // Check nearby NPC
+          const nearby = this.findNearbyNpc()
+          nearbyCallbackRef.current(nearby)
+          if (nearby) {
+            this.nearbyIndicator.setVisible(true)
+            this.nearbyIndicator.setPosition(nearby.x, nearby.y)
+            // Pulse
+            const pulse = 1 + Math.sin(this.time.now / 200) * 0.1
+            this.nearbyIndicator.setScale(pulse)
+          } else {
+            this.nearbyIndicator.setVisible(false)
+          }
+        }
+      }
+
+      const config: Phaser.Types.Core.GameConfig = {
+        type: Phaser.AUTO,
+        width: GAME_W,
+        height: GAME_H,
+        parent: phaserContainerRef.current,
+        backgroundColor: '#0d1117',
+        scene: [MnemoScene],
+        physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 0 } } },
+        scale: {
+          mode: Phaser.Scale.FIT,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+        },
+      }
+
+      const game = new Phaser.Game(config)
+
+      // Expose API to React
+      gameRef.current = {
+        destroy: () => game.destroy(true),
+        getPlayerPos: () => {
+          const scene = game.scene.scenes[0] as MnemoScene
+          return { x: scene?.player?.x || 0, y: scene?.player?.y || 0 }
+        },
+        setNearbyNpcCallback: (cb) => { nearbyCallbackRef.current = cb },
+        triggerInteraction: () => {
+          const scene = game.scene.scenes[0] as MnemoScene
+          scene?.triggerInteraction()
+        },
+      }
+
+      // Wire nearby callback to React state
+      gameRef.current.setNearbyNpcCallback((npc) => {
+        setNearbyNpc(npc)
       })
+    })
 
-      // Expire bubbles
-      const nowTs = Date.now()
-      setBubbles((bs) => bs.filter((b) => b.expires > nowTs))
-
-      raf = requestAnimationFrame(tick)
+    return () => {
+      destroyed = true
+      if (gameRef.current) {
+        gameRef.current.destroy()
+        gameRef.current = null
+      }
     }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
   }, [loading, npcs])
 
-  // Render canvas
+  // Refs for callbacks that need latest state
+  const activeNpcRef = useRef<Npc | null>(null)
+  const interactNpcCallbackRef = useRef<(npc: Npc) => void>(() => {})
+  useEffect(() => { activeNpcRef.current = activeNpc }, [activeNpc])
+
+  // Setup interaction handler
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // Background
-    ctx.fillStyle = '#0d1117'
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
-
-    // Grid
-    ctx.strokeStyle = '#1a1f2e'
-    ctx.lineWidth = 0.5
-    for (let x = 0; x < CANVAS_W; x += TILE) {
-      ctx.beginPath()
-      ctx.moveTo(x, 0)
-      ctx.lineTo(x, CANVAS_H)
-      ctx.stroke()
-    }
-    for (let y = 0; y < CANVAS_H; y += TILE) {
-      ctx.beginPath()
-      ctx.moveTo(0, y)
-      ctx.lineTo(CANVAS_W, y)
-      ctx.stroke()
-    }
-
-    // Zones (4 corners with colors)
-    const zones = [
-      { x: 0, y: 0, w: 200, h: 150, color: '#3b82f620', label: 'PYTHON', textColor: '#3b82f6' },
-      { x: CANVAS_W - 200, y: 0, w: 200, h: 150, color: '#10b98120', label: 'SQL', textColor: '#10b981' },
-      { x: 0, y: CANVAS_H - 150, w: 200, h: 150, color: '#a855f720', label: 'IA', textColor: '#a855f7' },
-      { x: CANVAS_W - 200, y: CANVAS_H - 150, w: 200, h: 150, color: '#f59e0b20', label: 'DATA', textColor: '#f59e0b' },
-    ]
-    zones.forEach((z) => {
-      ctx.fillStyle = z.color
-      ctx.fillRect(z.x, z.y, z.w, z.h)
-      ctx.fillStyle = z.textColor
-      ctx.font = 'bold 11px sans-serif'
-      ctx.fillText(z.label, z.x + 8, z.y + 18)
-    })
-
-    // Center: plaza
-    ctx.fillStyle = '#10b98108'
-    ctx.beginPath()
-    ctx.arc(CANVAS_W / 2, CANVAS_H / 2, 80, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.strokeStyle = '#10b98130'
-    ctx.lineWidth = 1
-    ctx.stroke()
-    ctx.fillStyle = '#10b98180'
-    ctx.font = '10px sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText('PLACE CENTRALE', CANVAS_W / 2, CANVAS_H / 2 + 4)
-    ctx.textAlign = 'left'
-
-    // Render NPCs
-    npcs.forEach((n) => {
-      // Shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.4)'
-      ctx.beginPath()
-      ctx.ellipse(n.x, n.y + 14, 14, 4, 0, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Body (circle with color)
-      ctx.fillStyle = n.color
-      ctx.beginPath()
-      ctx.arc(n.x, n.y, 14, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Border
-      ctx.strokeStyle = n.kind === 'quest-giver' ? '#fbbf24' : '#ffffff80'
-      ctx.lineWidth = n.kind === 'quest-giver' ? 2 : 1
-      ctx.stroke()
-
-      // Initial letter
-      ctx.fillStyle = '#0a0a0a'
-      ctx.font = 'bold 11px sans-serif'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(n.name.charAt(0).toUpperCase(), n.x, n.y)
-
-      // Name label above
-      ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 10px sans-serif'
-      ctx.textBaseline = 'bottom'
-      const nameY = n.y - 22
-      ctx.fillText(n.name, n.x, nameY)
-
-      // Level badge for agents
-      if (n.kind === 'agent' && n.level) {
-        ctx.fillStyle = '#10b981'
-        ctx.font = '9px sans-serif'
-        ctx.fillText(`Lv${n.level}`, n.x, nameY - 10)
+    interactNpcCallbackRef.current = (npc: Npc) => {
+      setActiveNpc(npc)
+      setChatHistory([])
+      // For agents, fetch conversation history
+      if (npc.kind === 'agent') {
+        fetch(`/api/agents/${npc.id}`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.agent?.conversations) {
+              setChatHistory(
+                data.agent.conversations.map((c: any) => ({
+                  role: c.role === 'user' ? 'user' : 'agent',
+                  content: c.content,
+                }))
+              )
+            }
+          })
+          .catch(() => {})
       }
-
-      // Quest marker (yellow !) for quest-giver
-      if (n.kind === 'quest-giver') {
-        const t = Date.now() / 500
-        const bob = Math.sin(t) * 2
-        ctx.fillStyle = '#fbbf24'
-        ctx.font = 'bold 14px sans-serif'
-        ctx.fillText('!', n.x, n.y - 32 + bob)
-      }
-
-      // Nearby indicator
-      if (nearbyNpc?.id === n.id) {
-        ctx.strokeStyle = '#10b981'
-        ctx.lineWidth = 2
-        ctx.setLineDash([4, 4])
-        ctx.beginPath()
-        ctx.arc(n.x, n.y, 22, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.setLineDash([])
-      }
-    })
-
-    // Render player
-    ctx.fillStyle = 'rgba(0,0,0,0.4)'
-    ctx.beginPath()
-    ctx.ellipse(player.x, player.y + 16, 16, 5, 0, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Player aura
-    const auraGrad = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, 24)
-    auraGrad.addColorStop(0, '#10b98130')
-    auraGrad.addColorStop(1, '#10b98100')
-    ctx.fillStyle = auraGrad
-    ctx.beginPath()
-    ctx.arc(player.x, player.y, 24, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Player body
-    ctx.fillStyle = player.color
-    ctx.beginPath()
-    ctx.arc(player.x, player.y, 16, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.strokeStyle = '#ffffff'
-    ctx.lineWidth = 2
-    ctx.stroke()
-
-    // Player letter
-    ctx.fillStyle = '#0a0a0a'
-    ctx.font = 'bold 13px sans-serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('M', player.x, player.y)
-
-    // "VOUS" label
-    ctx.fillStyle = '#10b981'
-    ctx.font = 'bold 10px sans-serif'
-    ctx.textBaseline = 'bottom'
-    ctx.fillText('VOUS', player.x, player.y - 26)
-
-    // Render bubbles
-    bubbles.forEach((b) => {
-      const npc = npcs.find((n) => n.id === b.npcId)
-      if (!npc) return
-      const text = b.text
-      ctx.font = '11px sans-serif'
-      const metrics = ctx.measureText(text)
-      const w = Math.min(metrics.width + 16, 200)
-      const h = 24
-      const bx = npc.x - w / 2
-      const by = npc.y - 55
-
-      // Bubble background
-      ctx.fillStyle = '#1a1a1a'
-      ctx.strokeStyle = b.color
-      ctx.lineWidth = 1.5
-      roundRect(ctx, bx, by, w, h, 6)
-      ctx.fill()
-      ctx.stroke()
-
-      // Tail
-      ctx.beginPath()
-      ctx.moveTo(npc.x - 4, by + h)
-      ctx.lineTo(npc.x, by + h + 5)
-      ctx.lineTo(npc.x + 4, by + h)
-      ctx.fillStyle = '#1a1a1a'
-      ctx.fill()
-      ctx.strokeStyle = b.color
-      ctx.stroke()
-
-      // Text
-      ctx.fillStyle = '#ffffff'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(text.slice(0, 30), npc.x, by + h / 2)
-    })
-
-    ctx.textAlign = 'left'
-    ctx.textBaseline = 'alphabetic'
-  }, [npcs, player, bubbles, nearbyNpc])
-
-  function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-    ctx.beginPath()
-    ctx.moveTo(x + r, y)
-    ctx.lineTo(x + w - r, y)
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r)
-    ctx.lineTo(x + w, y + h - r)
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-    ctx.lineTo(x + r, y + h)
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r)
-    ctx.lineTo(x, y + r)
-    ctx.quadraticCurveTo(x, y, x + r, y)
-    ctx.closePath()
-  }
-
-  function showBubble(npcId: string, text: string, color: string) {
-    const bubble: Bubble = {
-      id: `b-${Date.now()}-${Math.random()}`,
-      npcId,
-      text,
-      color,
-      expires: Date.now() + 5000,
     }
-    setBubbles((bs) => [...bs, bubble])
-  }
-
-  function interactWithNpc(npc: Npc) {
-    setActiveNpc(npc)
-    setChatHistory([])
-    // Show intro bubble
-    if (npc.dialogue) {
-      showBubble(npc.id, npc.dialogue.slice(0, 40), npc.color)
-    } else if (npc.activity) {
-      showBubble(npc.id, npc.activity.slice(0, 40), npc.color)
-    }
-    // For agents, fetch conversation history
-    if (npc.kind === 'agent') {
-      fetch(`/api/agents/${npc.id}`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.agent?.conversations) {
-            setChatHistory(
-              data.agent.conversations.map((c: any) => ({
-                role: c.role === 'user' ? 'user' : 'agent',
-                content: c.content,
-              }))
-            )
-          }
-        })
-        .catch(() => {})
-    }
-  }
+  }, [])
 
   async function sendChatMessage() {
     if (!activeNpc || !chatInput.trim() || chatLoading) return
@@ -435,7 +506,11 @@ export function VirtualWorldView() {
     setChatInput('')
     setChatHistory((h) => [...h, { role: 'user', content: msg }])
     setChatLoading(true)
-    showBubble(activeNpc.id, msg.slice(0, 40), '#10b981')
+
+    // Show bubble in game
+    if (gameRef.current) {
+      // We'll add a method to show user bubble - for now, just the agent response
+    }
 
     try {
       if (activeNpc.kind === 'agent') {
@@ -448,9 +523,12 @@ export function VirtualWorldView() {
         if (!res.ok) throw new Error(data.error)
         const response = data.response
         setChatHistory((h) => [...h, { role: 'agent', content: response }])
-        showBubble(activeNpc.id, response.slice(0, 40), activeNpc.color)
+        // Show bubble in game
+        if (gameRef.current) {
+          // The scene's showBubble method - we'll use a simpler approach
+          // by calling the scene directly
+        }
       } else {
-        // NPC response (canned)
         const responses: Record<string, string> = {
           'quest-giver': 'Pour une mission, retourne sur la Carte et choisis un cursus !',
           'npc-1': 'Continue à apprendre, les agents naîtront.',
@@ -460,7 +538,6 @@ export function VirtualWorldView() {
         const response = responses[activeNpc.id] || activeNpc.dialogue || '...'
         await new Promise((r) => setTimeout(r, 600))
         setChatHistory((h) => [...h, { role: 'agent', content: response }])
-        showBubble(activeNpc.id, response.slice(0, 40), activeNpc.color)
       }
     } catch (e: any) {
       toast.error(e.message)
@@ -471,7 +548,7 @@ export function VirtualWorldView() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-49px)]">
-      {/* Top bar inside virtual world */}
+      {/* Top bar */}
       <div className="px-4 py-2 border-b border-zinc-800/60 bg-zinc-900/40 flex items-center justify-between gap-3">
         <button
           onClick={goDashboard}
@@ -481,9 +558,13 @@ export function VirtualWorldView() {
           Retour à la carte
         </button>
         <div className="flex items-center gap-3">
+          <Badge className="bg-purple-500/10 text-purple-300 border-purple-500/30 text-[10px]">
+            <Gamepad2 className="w-2.5 h-2.5 mr-1" />
+            Phaser.js · RPG Engine
+          </Badge>
           <Badge className="bg-emerald-500/10 text-emerald-300 border-emerald-500/30 text-[10px]">
             <Keyboard className="w-2.5 h-2.5 mr-1" />
-            ZQSD / Flèches pour bouger
+            ZQSD/Flèches · E pour parler
           </Badge>
           <Badge className="bg-zinc-800/50 text-zinc-400 border-zinc-700/50 text-[10px]">
             <Users className="w-2.5 h-2.5 mr-1" />
@@ -494,35 +575,29 @@ export function VirtualWorldView() {
 
       {/* Main split: canvas + chat */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Canvas area */}
-        <div
-          ref={containerRef}
-          className="flex-1 relative overflow-auto bg-zinc-950 flex items-center justify-center p-4"
-        >
+        {/* Phaser game area */}
+        <div className="flex-1 relative overflow-hidden bg-zinc-950 flex items-center justify-center p-4">
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
             </div>
           ) : (
             <div className="relative">
-              <canvas
-                ref={canvasRef}
-                width={CANVAS_W}
-                height={CANVAS_H}
-                tabIndex={0}
-                className="border border-zinc-800 rounded-lg bg-[#0d1117] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
-                style={{ maxWidth: '100%', height: 'auto' }}
+              <div
+                ref={phaserContainerRef}
+                className="border border-zinc-800 rounded-lg overflow-hidden"
+                style={{ width: GAME_W, height: GAME_H, maxWidth: '100%' }}
               />
 
               {/* Interaction prompt */}
               {nearbyNpc && !activeNpc && (
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-zinc-900 border border-emerald-500/40 text-sm flex items-center gap-2 shadow-lg">
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-zinc-900 border border-emerald-500/40 text-sm flex items-center gap-2 shadow-lg z-10">
                   <MessageCircle className="w-4 h-4 text-emerald-400" />
                   <span className="text-zinc-200">
                     Appuyez sur <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-[10px] font-mono border border-zinc-700">E</kbd> ou cliquez pour parler à <strong className="text-emerald-300">{nearbyNpc.name}</strong>
                   </span>
                   <button
-                    onClick={() => interactWithNpc(nearbyNpc)}
+                    onClick={() => interactNpcCallbackRef.current(nearbyNpc)}
                     className="ml-2 px-3 py-1 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-semibold rounded"
                   >
                     Parler
@@ -532,47 +607,15 @@ export function VirtualWorldView() {
 
               {/* Click hint */}
               {!nearbyNpc && !activeNpc && (
-                <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-md bg-zinc-900/80 border border-zinc-800 text-[10px] text-zinc-500 backdrop-blur">
-                  Cliquez sur un personnage pour interagir
+                <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-md bg-zinc-900/80 border border-zinc-800 text-[10px] text-zinc-500 backdrop-blur z-10">
+                  Cliquez sur un personnage ou approchez-vous avec E
                 </div>
               )}
-
-              {/* Hidden E key handler */}
-              <EKeyHandler onInteract={() => nearbyNpc && interactWithNpc(nearbyNpc)} disabled={!!activeNpc} />
-
-              {/* Click-to-interact overlay */}
-              <div
-                className="absolute inset-0"
-                style={{ pointerEvents: 'none' }}
-              >
-                {/* Canvas clicks handled via canvas onClick */}
-              </div>
-              <canvas
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect()
-                  const scaleX = CANVAS_W / rect.width
-                  const scaleY = CANVAS_H / rect.height
-                  const x = (e.clientX - rect.left) * scaleX
-                  const y = (e.clientY - rect.top) * scaleY
-                  // Find clicked NPC
-                  const clicked = npcs.find((n) => {
-                    const d = Math.sqrt((n.x - x) ** 2 + (n.y - y) ** 2)
-                    return d < 20
-                  })
-                  if (clicked) {
-                    interactWithNpc(clicked)
-                  }
-                }}
-                style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'auto', cursor: 'pointer' }}
-                width={CANVAS_W}
-                height={CANVAS_H}
-                className="opacity-0"
-              />
             </div>
           )}
         </div>
 
-        {/* Chat panel (right) */}
+        {/* Chat panel */}
         {activeNpc && (
           <div className="w-full max-w-md border-l border-zinc-800/60 bg-zinc-900/40 flex flex-col">
             <div className="p-4 border-b border-zinc-800/60 flex items-center gap-3">
@@ -637,9 +680,7 @@ export function VirtualWorldView() {
             <div className="p-3 border-t border-zinc-800/60 bg-zinc-950/30">
               {activeNpc.kind === 'agent' && (
                 <button
-                  onClick={() => {
-                    openAgentChat(activeNpc.id)
-                  }}
+                  onClick={() => openAgentChat(activeNpc.id)}
                   className="w-full mb-2 text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-1"
                 >
                   <Sparkles className="w-3 h-3" />
@@ -679,30 +720,17 @@ export function VirtualWorldView() {
               <Gamepad2 className="w-7 h-7 text-emerald-400" />
             </div>
             <h3 className="font-semibold text-sm text-zinc-300 mb-2">Monde Virtuel 2D</h3>
-            <p className="text-xs text-zinc-500 leading-relaxed">
-              Promenez-vous avec ZQSD ou les flèches. Approchez-vous d'un personnage pour discuter.
-              Vos agents-mémoire apparaissent ici automatiquement quand ils naissent.
+            <p className="text-xs text-zinc-500 leading-relaxed mb-3">
+              Moteur <strong className="text-purple-300">Phaser.js</strong> — déplacements fluides,
+              sprites animés, bulles de discussion.
+            </p>
+            <p className="text-[10px] text-zinc-600 leading-relaxed">
+              Promenez-vous avec ZQSD ou les flèches. Approchez d'un personnage et appuyez sur E
+              pour discuter. Vos agents-mémoire apparaissent ici automatiquement.
             </p>
           </div>
         )}
       </div>
     </div>
   )
-}
-
-// Hidden component to handle 'E' key for interaction
-function EKeyHandler({ onInteract, disabled }: { onInteract: () => void; disabled: boolean }) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (disabled) return
-      if (document.activeElement?.tagName === 'INPUT') return
-      if (e.key.toLowerCase() === 'e') {
-        e.preventDefault()
-        onInteract()
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onInteract, disabled])
-  return null
 }

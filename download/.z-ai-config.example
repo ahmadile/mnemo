@@ -1,0 +1,19 @@
+# Configuration Z.ai pour z-ai-web-dev-sdk
+# ============================================================
+# Ce fichier est nécessaire pour que Mnemo puisse appeler l'IA
+# (génération de missions, évaluation de code, chat avec agents).
+#
+# OBTENIR UNE CLÉ API :
+# 1. Allez sur https://z.ai
+# 2. Créez un compte
+# 3. Allez dans "API Keys" ou "Developer"
+# 4. Copiez votre clé API
+#
+# SÉCURITÉ :
+# - Ne JAMAIS committer ce fichier sur Git (il est dans .gitignore)
+# - La clé est utilisée côté serveur uniquement (jamais exposée au client)
+# - En production VPS, mettez la clé en variable d'environnement ZAI_API_KEY
+
+{
+  "apiKey": "VOTRE_CLE_API_ICI"
+}

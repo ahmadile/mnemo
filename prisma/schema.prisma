@@ -13,14 +13,18 @@ datasource db {
 model Curriculum {
   id          String   @id @default(cuid())
   name        String
-  domain      String   @unique // python, sql, ai-engineering, data-science, web-dev, or custom slug
+  domain      String   @unique
   description String
   icon        String
   color       String
   xp          Int      @default(0)
   level       Int      @default(1)
-  isCustom    Boolean  @default(false) // true if user-created (not one of the 5 defaults)
-  language    String   @default("python") // default code language for this curriculum's missions
+  isCustom    Boolean  @default(false)
+  language    String   @default("python")
+  // DataCamp sync metadata (null for non-DataCamp curricula)
+  datacampUrl        String?
+  datacampProgress   Int      @default(0) // 0-100 percentage completed on DataCamp
+  completedCourses   String   @default("[]") // JSON array of {title, url, completedAt}
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   missions    Mission[]

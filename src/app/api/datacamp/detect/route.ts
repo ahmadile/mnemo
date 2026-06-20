@@ -5,32 +5,26 @@ import { db } from '@/lib/db'
 // Called by the Chrome extension after it scrapes the DataCamp page.
 // Body: {
 //   url: string,
-//   courseTitle: string,           // ex: "Python intermédiaire pour les développeurs"
-//   curriculumTitle?: string,      // ex: "Développeur associé Python"
-//   detectedLanguage?: string,     // 'python' | 'sql' | 'r' | etc
+//   courseTitle: string,
+//   curriculumTitle?: string,
+//   chapterTitle?: string,
 //   pageType: 'course' | 'exercise' | 'curriculum' | 'unknown',
+//   detectedLanguage?: string,
+//   completedCourses?: [{title, url}],  // v1.3: courses the user already completed
+//   progress?: number,                  // v1.3: 0-100 percentage
 // }
 // Returns: { curriculum: Curriculum, created: boolean }
 // Behavior:
 //   - Find or create a Mnemo curriculum matching the DataCamp curriculum/course title
-//   - For Python content → language="python", color=#3B82F6, etc.
-//   - Returns the curriculum ID that the extension will use to generate a mission
+//   - Sync the completed courses and progress percentage
 
 const LANGUAGE_MAP: Record<string, { language: string; color: string; icon: string }> = {
   python: { language: 'python', color: '#3B82F6', icon: 'code' },
   sql: { language: 'sql', color: '#10B981', icon: 'database' },
-  r: { language: 'python', color: '#276DC3', icon: 'chart-line' }, // R falls back to python editor
+  r: { language: 'python', color: '#276DC3', icon: 'chart-line' },
   shell: { language: 'python', color: '#84CC16', icon: 'code' },
   javascript: { language: 'javascript', color: '#F59E0B', icon: 'code' },
-}
-
-function detectLanguage(text: string): string {
-  const t = text.toLowerCase()
-  if (t.includes('sql') || t.includes('postgres') || t.includes('mysql')) return 'sql'
-  if (t.includes('javascript') || t.includes('js ') || t.includes('node')) return 'javascript'
-  if (t.includes(' r ') || t.includes('r studio') || t.includes('tidyverse')) return 'r'
-  if (t.includes('shell') || t.includes('bash') || t.includes('terminal')) return 'shell'
-  return 'python' // default
+  java: { language: 'javascript', color: '#EF4444', icon: 'code' },
 }
 
 function slugify(s: string): string {
@@ -47,7 +41,16 @@ function slugify(s: string): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { url, courseTitle, curriculumTitle, pageType } = body
+    const {
+      url,
+      courseTitle,
+      curriculumTitle,
+      chapterTitle,
+      pageType,
+      detectedLanguage,
+      completedCourses,
+      progress,
+    } = body
 
     if (!courseTitle || courseTitle.trim().length < 2) {
       return NextResponse.json(
@@ -56,22 +59,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Determine the "name" to use for the Mnemo curriculum:
-    // Priority: curriculumTitle > courseTitle
     const name = (curriculumTitle || courseTitle).trim()
     const domain = 'dc-' + slugify(name)
 
-    // Detect language from titles + URL
-    const combinedText = `${courseTitle} ${curriculumTitle || ''} ${url}`
-    const detectedLang = detectLanguage(combinedText)
-    const langConfig = LANGUAGE_MAP[detectedLang] || LANGUAGE_MAP.python
+    const langConfig = LANGUAGE_MAP[detectedLanguage || 'python'] || LANGUAGE_MAP.python
 
     // Find or create the curriculum
     let curriculum = await db.curriculum.findUnique({ where: { domain } })
     let created = false
 
     if (!curriculum) {
-      // Create it automatically
       curriculum = await db.curriculum.create({
         data: {
           name: name.slice(0, 60),
@@ -81,22 +78,41 @@ export async function POST(req: NextRequest) {
           color: langConfig.color,
           language: langConfig.language,
           isCustom: true,
+          datacampUrl: url,
+          datacampProgress: typeof progress === 'number' ? progress : 0,
+          completedCourses: JSON.stringify(completedCourses || []),
         },
       })
       created = true
       console.log(`[datacamp/detect] Created curriculum "${curriculum.name}" (${domain})`)
     } else {
-      console.log(`[datacamp/detect] Found existing curriculum "${curriculum.name}" (${domain})`)
+      // Update existing curriculum with the latest progress + completed courses
+      curriculum = await db.curriculum.update({
+        where: { id: curriculum.id },
+        data: {
+          datacampUrl: url || curriculum.datacampUrl,
+          datacampProgress: typeof progress === 'number'
+            ? Math.max(curriculum.datacampProgress, progress)
+            : curriculum.datacampProgress,
+          completedCourses: completedCourses && completedCourses.length > 0
+            ? JSON.stringify(completedCourses)
+            : curriculum.completedCourses,
+        },
+      })
+      console.log(`[datacamp/detect] Updated curriculum "${curriculum.name}" (progress: ${curriculum.datacampProgress}%)`)
     }
 
     return NextResponse.json({
       curriculum,
       created,
       detected: {
-        language: detectedLang,
+        language: detectedLanguage || langConfig.language,
         pageType: pageType || 'unknown',
         courseTitle,
         curriculumTitle: curriculumTitle || null,
+        chapterTitle: chapterTitle || null,
+        completedCoursesCount: (completedCourses || []).length,
+        progress: typeof progress === 'number' ? progress : null,
       },
     })
   } catch (e: any) {

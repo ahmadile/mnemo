@@ -1,5 +1,8 @@
-// Mnemo DataCamp Bridge v1.2 — popup script
-// Detects DataCamp course context and sends to Mnemo with auto-curriculum creation
+// Mnemo DataCamp Bridge v1.3 — popup script
+// Fixes:
+//   - Language detection now scoped to course title only (no more false "SQL" from sidebar)
+//   - Chapter detection scoped to main content (no more "APPRENTISSAGE" from menu)
+//   - Scrapes completed courses (green checkmarks) and sends progress to Mnemo
 
 const statusDot = document.getElementById('statusDot')
 const statusText = document.getElementById('statusText')
@@ -20,11 +23,8 @@ const dcMeta = document.getElementById('dcMeta')
 
 let detectedContext = null
 
-// Load saved server URL
 chrome.storage.local.get(['mnemoServerUrl'], (result) => {
-  if (result.mnemoServerUrl) {
-    serverUrlInput.value = result.mnemoServerUrl
-  }
+  if (result.mnemoServerUrl) serverUrlInput.value = result.mnemoServerUrl
 })
 
 serverUrlInput.addEventListener('change', () => {
@@ -34,12 +34,8 @@ serverUrlInput.addEventListener('change', () => {
 
 async function init() {
   setStatus('gray', 'Vérification...')
-
-  // 1. Check current tab is DataCamp
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   const isDataCamp = tab?.url?.includes('datacamp.com')
-
-  // 2. Check Mnemo server connectivity
   const url = serverUrlInput.value.replace(/\/$/, '')
   const serverOk = await checkServer(url)
 
@@ -53,8 +49,8 @@ async function init() {
         <br><br>
         <span style="color:#a1a1aa;">Causes possibles :</span><br>
         • Mnemo n'est pas démarré (lancez <code style="color:#fbbf24;">bun run dev</code>)<br>
-        • L'URL dans le champ ci-dessus est incorrecte<br>
-        • Le port 3000 est déjà utilisé par une autre app
+        • Le fichier <code style="color:#fbbf24;">.z-ai-config</code> manque à la racine du projet<br>
+        • L'URL dans le champ ci-dessus est incorrecte
       </div>
     `
     return
@@ -71,10 +67,8 @@ async function init() {
     return
   }
 
-  // 3. We're on DataCamp + server OK → detect context
   setStatus('datacamp', 'DataCamp détecté · Mnemo connecté')
   notDatacampSection.style.display = 'none'
-
   await detectDataCampContext(tab.id)
 }
 
@@ -105,9 +99,8 @@ async function detectDataCampContext(tabId) {
     }
 
     detectedContext = results[0].result
-    console.log('[Mnemo] Detected DataCamp context:', detectedContext)
+    console.log('[Mnemo v1.3] Detected context:', detectedContext)
 
-    // Populate UI
     contextSection.style.display = 'block'
     captureSection.style.display = 'block'
 
@@ -129,13 +122,34 @@ async function detectDataCampContext(tabId) {
       chip.textContent = detectedContext.detectedLanguage.toUpperCase()
       dcMeta.appendChild(chip)
     }
-    if (detectedContext.chapterTitle) {
+    if (detectedContext.chapterTitle && detectedContext.chapterTitle !== 'APPRENTISSAGE') {
       const chip = document.createElement('span')
       chip.className = 'chip'
       chip.style.background = 'rgba(168,85,247,0.15)'
       chip.style.color = '#d8b4fe'
       chip.style.borderColor = 'rgba(168,85,247,0.3)'
-      chip.textContent = 'Chapitre : ' + detectedContext.chapterTitle.slice(0, 30)
+      chip.textContent = '📖 ' + detectedContext.chapterTitle.slice(0, 30)
+      dcMeta.appendChild(chip)
+    }
+
+    // Show progress info if we scraped completed courses
+    if (detectedContext.completedCourses && detectedContext.completedCourses.length > 0) {
+      const chip = document.createElement('span')
+      chip.className = 'chip'
+      chip.style.background = 'rgba(16,185,129,0.15)'
+      chip.style.color = '#34d399'
+      chip.style.borderColor = 'rgba(16,185,129,0.3)'
+      chip.textContent = `✓ ${detectedContext.completedCourses.length} cours complétés`
+      dcMeta.appendChild(chip)
+    }
+    // Show progress percentage
+    if (detectedContext.progress && detectedContext.progress > 0) {
+      const chip = document.createElement('span')
+      chip.className = 'chip'
+      chip.style.background = 'rgba(59,130,246,0.15)'
+      chip.style.color = '#93c5fd'
+      chip.style.borderColor = 'rgba(59,130,246,0.3)'
+      chip.textContent = `📊 ${detectedContext.progress}% sur DataCamp`
       dcMeta.appendChild(chip)
     }
   } catch (e) {
@@ -144,7 +158,6 @@ async function detectDataCampContext(tabId) {
   }
 }
 
-// Capture & send
 captureBtn.addEventListener('click', async () => {
   if (!detectedContext) {
     showToast('Aucun contexte détecté. Rafraîchissez.', true)
@@ -158,7 +171,7 @@ captureBtn.addEventListener('click', async () => {
   try {
     const url = serverUrlInput.value.replace(/\/$/, '')
 
-    // 1. Find or create the Mnemo curriculum matching this DataCamp context
+    // 1. Find or create the Mnemo curriculum (and sync progress + completed courses)
     setLoading('Création du cursus Mnemo...')
     const detectRes = await fetch(`${url}/api/datacamp/detect`, {
       method: 'POST',
@@ -169,6 +182,9 @@ captureBtn.addEventListener('click', async () => {
         curriculumTitle: detectedContext.curriculumTitle,
         chapterTitle: detectedContext.chapterTitle,
         pageType: detectedContext.pageType,
+        detectedLanguage: detectedContext.detectedLanguage,
+        completedCourses: detectedContext.completedCourses || [],
+        progress: detectedContext.progress || 0,
       }),
     })
     const detectData = await detectRes.json()
@@ -180,8 +196,8 @@ captureBtn.addEventListener('click', async () => {
       : `Cursus trouvé: ${detectData.curriculum.name}`
     )
 
-    // 2. Show preview
-    setLoading('Extraction du contenu...')
+    // 2. Extract content
+    setLoading('Extraction du contenu du cours...')
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     const extractResults = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
@@ -211,10 +227,7 @@ captureBtn.addEventListener('click', async () => {
     if (!missionRes.ok) throw new Error(missionData.error || 'Échec génération mission')
 
     showToast(`Mission générée: ${missionData.mission.title}`)
-
-    // 4. Open Mnemo on the mission
     chrome.tabs.create({ url: `${url}/?mission=${missionData.mission.id}` })
-
     setTimeout(() => window.close(), 1500)
   } catch (e) {
     console.error('[Mnemo] Capture error:', e)
@@ -224,19 +237,14 @@ captureBtn.addEventListener('click', async () => {
   }
 })
 
-function setLoading(text) {
-  loadingText.textContent = text
-}
-
+function setLoading(text) { loadingText.textContent = text }
 function setStatus(dotClass, text) {
   statusDot.className = 'status-dot ' + dotClass
   statusText.textContent = text
 }
 
 refreshBtn.addEventListener('click', init)
-openAppBtn.addEventListener('click', () => {
-  chrome.tabs.create({ url: serverUrlInput.value })
-})
+openAppBtn.addEventListener('click', () => chrome.tabs.create({ url: serverUrlInput.value }))
 
 function showToast(msg, isError = false) {
   toast.textContent = msg
@@ -244,63 +252,143 @@ function showToast(msg, isError = false) {
   setTimeout(() => toast.classList.remove('show'), 4000)
 }
 
-// === Functions injected into the DataCamp page ===
+// === Functions injected into the DataCamp page (v1.3 — scoped detection) ===
 
-// Extract structured context (cursus, course, chapter) from the DataCamp page
 function extractDataCampContext() {
   const url = window.location.href
 
-  // Detect page type from URL
+  // --- STEP 1: Find the MAIN content area (exclude sidebar/nav) ---
+  // DataCamp's main content is in <main> or [role="main"] or specific containers
+  const mainEl = document.querySelector('main') ||
+                 document.querySelector('[role="main"]') ||
+                 document.querySelector('[class*="main__content"]') ||
+                 document.body
+
+  // --- STEP 2: Detect page type from URL ---
   let pageType = 'unknown'
-  if (url.includes('/courses/') && !url.includes('/courses')) {
-    pageType = 'course'
-  }
   if (url.includes('/learn/courses/')) pageType = 'course'
   if (url.includes('/learn/career-tracks/') || url.includes('/learn/skill-tracks/')) pageType = 'curriculum'
-  if (document.querySelector('[class*="WorkspaceBody"], [class*="exercise__content"], [class*="ExerciseSlide"]')) {
+  if (mainEl.querySelector('[class*="WorkspaceBody"], [class*="exercise__content"], [class*="ExerciseSlide"]')) {
     pageType = 'exercise'
   }
 
-  // Course title: look for h1 in main content
+  // --- STEP 3: Course title — scoped to MAIN content only ---
   let courseTitle = ''
-  const h1 = document.querySelector('h1')
-  if (h1 && h1.innerText.trim()) {
-    courseTitle = h1.innerText.trim()
+  const mainH1 = mainEl.querySelector('h1')
+  if (mainH1 && mainH1.innerText.trim()) {
+    courseTitle = mainH1.innerText.trim()
   }
-  // Fallback: page title
+  // Fallback: page title (cleaned)
   if (!courseTitle || courseTitle.length < 3) {
     courseTitle = document.title.replace(/\s*[-|]\s*DataCamp.*$/i, '').trim() || 'Cours DataCamp'
   }
 
-  // Curriculum title: DataCamp shows it in a banner like "CURSUS PROFESSIONNEL" + title
+  // --- STEP 4: Curriculum title — look for "CURSUS PROFESSIONNEL" or "CURSUS DE COMPÉTENCES" ---
   let curriculumTitle = ''
-  const trackBadge = Array.from(document.querySelectorAll('[class*="TrackHeader"], [class*="CareerTrack"], [class*="title"]'))
-    .find((el) => el.innerText && el.innerText.length > 3 && el.innerText.length < 200)
-  if (trackBadge) {
-    curriculumTitle = trackBadge.innerText.trim().split('\n')[0]
-  }
-
-  // Look for the "CURSUS PROFESSIONNEL" or "CURSUS DE COMPÉTENCES" label and the title right after
-  const allText = document.body.innerText
-  const cursusMatch = allText.match(/CURSUS\s+(PROFESSIONNEL|DE COMP[ÉE]TENCES)\s*\n([^\n]+)/i)
+  // Strategy A: Find the label text near the title
+  const allMainText = mainEl.innerText || ''
+  const cursusMatch = allMainText.match(/CURSUS\s+(PROFESSIONNEL|DE COMP[ÉE]TENCES)\s*\n([^\n]+)/i)
   if (cursusMatch && cursusMatch[2]) {
     curriculumTitle = cursusMatch[2].trim()
   }
-
-  // Chapter title (visible during exercise)
-  let chapterTitle = ''
-  const chapterEl = document.querySelector('[class*="ChapterTitle"], [class*="chapter__title"], h2')
-  if (chapterEl && chapterEl.innerText.trim()) {
-    chapterTitle = chapterEl.innerText.trim().slice(0, 80)
+  // Strategy B: Look for a "track header" element
+  if (!curriculumTitle) {
+    const trackH = mainEl.querySelector('[class*="TrackHeader__title"], [class*="careerTrack"]')
+    if (trackH && trackH.innerText.trim().length > 3) {
+      curriculumTitle = trackH.innerText.trim().split('\n')[0]
+    }
   }
 
-  // Detect language from page content
-  const pageText = (courseTitle + ' ' + curriculumTitle + ' ' + allText.slice(0, 2000)).toLowerCase()
-  let detectedLanguage = 'python'
-  if (pageText.includes('sql') || pageText.includes('postgres')) detectedLanguage = 'sql'
-  else if (pageText.includes(' r ') || pageText.includes('tidyverse') || pageText.includes('rstudio')) detectedLanguage = 'r'
-  else if (pageText.includes('javascript') || pageText.includes('node')) detectedLanguage = 'javascript'
-  else if (pageText.includes('shell') || pageText.includes('bash')) detectedLanguage = 'shell'
+  // --- STEP 5: Chapter title — scoped to exercise context only ---
+  // IMPORTANT: Only look for chapter if we're on an exercise page,
+  // otherwise we'd pick up random h2 from the sidebar/menu
+  let chapterTitle = ''
+  if (pageType === 'exercise') {
+    const chapterEl = mainEl.querySelector(
+      '[class*="ChapterTitle"], [class*="chapter__title"], [data-testid="chapter-title"]'
+    )
+    if (chapterEl && chapterEl.innerText.trim()) {
+      chapterTitle = chapterEl.innerText.trim().slice(0, 80)
+    }
+  }
+
+  // --- STEP 6: Language detection — scoped to TITLES ONLY, not full page ---
+  // Bug fix: previously scanned full body text which matched "SQL" in the sidebar menu
+  const titleText = `${courseTitle} ${curriculumTitle}`.toLowerCase()
+  let detectedLanguage = 'python' // default
+  if (/\bsql\b/.test(titleText) || titleText.includes('postgres') || titleText.includes('mysql')) {
+    detectedLanguage = 'sql'
+  } else if (/\br\b/.test(titleText) || titleText.includes('tidyverse') || titleText.includes('rstudio')) {
+    detectedLanguage = 'r'
+  } else if (titleText.includes('javascript') || titleText.includes(' js ') || titleText.includes('node')) {
+    detectedLanguage = 'javascript'
+  } else if (titleText.includes('shell') || titleText.includes('bash') || titleText.includes('terminal')) {
+    detectedLanguage = 'shell'
+  } else if (titleText.includes('java ') && !titleText.includes('javascript')) {
+    detectedLanguage = 'java'
+  }
+
+  // --- STEP 7: Scrape completed courses (green checkmarks) ---
+  // DataCamp shows completed courses with a green checkmark icon
+  // We look for course list items that have a "completed" indicator
+  const completedCourses = []
+  // Strategy A: find all course links and check for adjacent green checkmark
+  const courseLinks = mainEl.querySelectorAll('a[href*="/learn/courses/"]')
+  courseLinks.forEach((link) => {
+    const href = link.getAttribute('href') || ''
+    // Skip if it's the current course page itself
+    if (href === window.location.pathname) return
+    // Look for a checkmark icon near this link
+    const parent = link.closest('li, div, article, [class*="course"]')
+    if (!parent) return
+    // DataCamp uses SVG checkmarks or specific class names for completed state
+    const hasCheckmark = parent.querySelector(
+      'svg[class*="check"], [class*="completed"], [class*="Completed"], [data-testid*="completed"]'
+    )
+    // Or look for a green-colored element
+    const greenEl = parent.querySelector('[style*="color: rgb(51, 170, 51)"], [class*="success"]')
+    if (hasCheckmark || greenEl) {
+      const title = link.innerText.trim() || link.querySelector('h3, h4')?.innerText?.trim() || ''
+      if (title && title.length > 3 && title.length < 200) {
+        completedCourses.push({ title, url: link.href })
+      }
+    }
+  })
+
+  // Strategy B: Look for elements with "Terminé" text (French DataCamp) or "Completed" (English)
+  const allCompletedLabels = mainEl.querySelectorAll('[class*="completed"], [class*="Completed"]')
+  allCompletedLabels.forEach((el) => {
+    const text = el.innerText?.trim()
+    if (text && (text === 'Terminé' || text === 'Completed' || text.includes('✓'))) {
+      // Find the nearest course title
+      const container = el.closest('li, div, article, [class*="course"]')
+      if (container) {
+        const titleEl = container.querySelector('h3, h4, [class*="title"]')
+        if (titleEl) {
+          const title = titleEl.innerText.trim()
+          if (title && title.length > 3 && !completedCourses.find((c) => c.title === title)) {
+            completedCourses.push({ title, url: '' })
+          }
+        }
+      }
+    }
+  })
+
+  // --- STEP 8: Extract progress percentage ---
+  // DataCamp shows "PROGRÈS DU CURSUS 38%" with a progress bar
+  let progress = 0
+  const progressMatch = allMainText.match(/PROGR[ÈE]S\s+DU\s+CURSUS\s*\n?\s*(\d{1,3})\s*%/i)
+  if (progressMatch && progressMatch[1]) {
+    progress = parseInt(progressMatch[1], 10)
+  }
+  // Alternative: look for an aria-valuenow on a progressbar
+  if (progress === 0) {
+    const progressBar = mainEl.querySelector('[role="progressbar"], [class*="ProgressBar"]')
+    if (progressBar) {
+      const valuenow = progressBar.getAttribute('aria-valuenow')
+      if (valuenow) progress = parseInt(valuenow, 10) || 0
+    }
+  }
 
   return {
     url,
@@ -309,12 +397,12 @@ function extractDataCampContext() {
     chapterTitle,
     pageType,
     detectedLanguage,
+    completedCourses: completedCourses.slice(0, 20),
+    progress,
   }
 }
 
-// Extract the actual course content (instructions, code samples, context)
 function extractDataCampContent() {
-  // Strategy 1: Try DataCamp-specific selectors (most reliable)
   const selectors = [
     '[class*="WorkspaceBody"]',
     '[class*="Instructions"]',
@@ -324,23 +412,15 @@ function extractDataCampContent() {
     'article',
     'main',
   ]
-
   for (const sel of selectors) {
     const el = document.querySelector(sel)
     if (el && el.innerText && el.innerText.length > 100) {
       return el.innerText.trim().slice(0, 8000)
     }
   }
-
-  // Strategy 2: Title + body text (less precise but always works)
   const title = document.querySelector('h1, h2')?.innerText || document.title
-  const body = document.body.innerText
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 8000)
-
+  const body = document.body.innerText.replace(/\s+/g, ' ').trim().slice(0, 8000)
   return `${title}\n\n${body}`
 }
 
-// Initial load
 init()
