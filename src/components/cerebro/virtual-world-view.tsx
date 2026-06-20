@@ -50,6 +50,7 @@ interface PhaserGameRef {
   getPlayerPos: () => { x: number; y: number }
   setNearbyNpcCallback: (cb: (npc: Npc | null) => void) => void
   triggerInteraction: () => void
+  setChatOpen: (open: boolean) => void
 }
 
 const GAME_W = 900
@@ -99,6 +100,8 @@ export function VirtualWorldView() {
       if (destroyed) return
 
       const nearbyCallbackRef = { current: (_npc: Npc | null) => {} }
+      // Ref to know if chat is open (shared with Phaser scene to disable movement)
+      const chatOpenRef = { current: false }
 
       class MnemoScene extends Phaser.Scene {
         player!: Phaser.GameObjects.Container
@@ -485,6 +488,13 @@ export function VirtualWorldView() {
         update() {
           if (!this.player || !this.cursors) return
 
+          // Disable movement when chat is open (so user can type freely)
+          if (chatOpenRef.current) {
+            // Reset any movement state
+            this.playerEmoji?.setRotation(0)
+            return
+          }
+
           // Movement
           const speed = 3.5
           let dx = 0
@@ -568,6 +578,14 @@ export function VirtualWorldView() {
           const scene = game.scene.scenes[0] as MnemoScene
           scene?.triggerInteraction()
         },
+        setChatOpen: (open: boolean) => {
+          chatOpenRef.current = open
+          // Also disable/enable keyboard capture on the Phaser scene
+          const scene = game.scene.scenes[0] as MnemoScene
+          if (scene?.input?.keyboard) {
+            scene.input.keyboard.enabled = !open
+          }
+        },
       }
 
       // Wire nearby callback to React state
@@ -589,6 +607,13 @@ export function VirtualWorldView() {
   const activeNpcRef = useRef<Npc | null>(null)
   const interactNpcCallbackRef = useRef<(npc: Npc) => void>(() => {})
   useEffect(() => { activeNpcRef.current = activeNpc }, [activeNpc])
+
+  // Sync chat open state with Phaser to disable movement while typing
+  useEffect(() => {
+    if (gameRef.current) {
+      gameRef.current.setChatOpen(!!activeNpc)
+    }
+  }, [activeNpc])
 
   // Setup interaction handler
   useEffect(() => {
@@ -806,11 +831,17 @@ export function VirtualWorldView() {
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => {
+                    // Stop propagation so Phaser doesn't capture the key
+                    e.stopPropagation()
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault()
                       sendChatMessage()
                     }
                   }}
+                  onKeyUp={(e) => e.stopPropagation()}
+                  onKeyPress={(e) => e.stopPropagation()}
+                  // Auto-focus when chat opens
+                  autoFocus
                   placeholder={`Parler à ${activeNpc.name}...`}
                   className="bg-zinc-950/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 text-xs"
                 />
