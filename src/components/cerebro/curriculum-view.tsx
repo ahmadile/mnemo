@@ -20,12 +20,9 @@ import {
   Sparkles,
   CheckCircle2,
   Send,
-  Link2,
-  Download,
   FileText,
-  Youtube,
-  ChevronDown,
 } from 'lucide-react'
+import { SmartImportBar } from '@/components/cerebro/smart-import-bar'
 import { toast } from 'sonner'
 
 interface Mission {
@@ -294,110 +291,41 @@ export function CurriculumView() {
         </div>
       </Card>
 
+      {/* Smart Import — unified import bar */}
+      <SmartImportBar
+        curriculumName={curriculum.name}
+        onContentExtracted={(content, title, link) => {
+          setCourseContent(content)
+          setCourseLink(link)
+          setExtractedTitle(title)
+        }}
+      />
+
       {/* Submit course form */}
       <Card className="border-zinc-800/60 bg-zinc-900/40 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Send className="w-4 h-4 text-emerald-400" />
-          <h2 className="font-bold">Soumettre un cours</h2>
+          <h2 className="font-bold">Générer une mission</h2>
         </div>
-        <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
-          Trois options : collez une URL DataCamp (ou autre) et cliquez sur Extraire,
-          collez vos notes directement, ou combinez les deux. L'IA génère une mission
-          style GTA spécifique au chapitre étudié.
-        </p>
+
+        {extractedTitle && (
+          <div className="flex items-center gap-2 px-3 py-2 mb-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 text-xs text-emerald-300">
+            <FileText className="w-3.5 h-3.5" />
+            <span className="truncate">Source : {extractedTitle}</span>
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="link" className="text-xs text-zinc-400 flex items-center gap-1.5">
-              <Link2 className="w-3 h-3" />
-              Lien du cours (DataCamp, doc, blog...)
-            </Label>
-            <div className="mt-1 flex gap-2">
-              <Input
-                id="link"
-                value={courseLink}
-                onChange={(e) => setCourseLink(e.target.value)}
-                placeholder="https://app.datacamp.com/learn/courses/intro-to-python"
-                className="flex-1 bg-zinc-950/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 font-mono text-xs"
-              />
-              <Button
-                onClick={handleExtractUrl}
-                disabled={extracting || !courseLink.trim()}
-                variant="outline"
-                className="border-zinc-700 hover:bg-zinc-800/50 hover:text-emerald-300"
-                type="button"
-              >
-                {extracting ? (
-                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                ) : (
-                  <Download className="w-3.5 h-3.5 mr-1.5" />
-                )}
-                Extraire
-              </Button>
-            </div>
-            <p className="text-[10px] text-zinc-600 mt-1">
-              L'IA lit la page et remplit le champ contenu automatiquement
-            </p>
-          </div>
-
-          {/* YouTube import (collapsible) */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowYoutube(!showYoutube)}
-              className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
-            >
-              <ChevronDown className={`w-3 h-3 transition-transform ${showYoutube ? 'rotate-180' : ''}`} />
-              <Youtube className="w-3.5 h-3.5 text-rose-400" />
-              Importer une transcription YouTube
-            </button>
-            {showYoutube && (
-              <div className="mt-2 space-y-2">
-                <div className="flex gap-2">
-                  <Input
-                    value={youtubeUrl}
-                    onChange={(e) => setYoutubeUrl(e.target.value)}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    className="flex-1 bg-zinc-950/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 font-mono text-xs"
-                  />
-                  <Button
-                    onClick={handleYouTube}
-                    disabled={youtubeLoading || !youtubeUrl.trim()}
-                    variant="outline"
-                    className="border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300"
-                    type="button"
-                  >
-                    {youtubeLoading ? (
-                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                    ) : (
-                      <Youtube className="w-3.5 h-3.5 mr-1.5" />
-                    )}
-                    Transcrire
-                  </Button>
-                </div>
-                <p className="text-[10px] text-zinc-600">
-                  Pour les tutoriels longs (10h+). La transcription est tronquée à 8000 caractères et l'IA génère une mission synthétisant les points clés.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {extractedTitle && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 text-xs text-emerald-300">
-              <FileText className="w-3.5 h-3.5" />
-              <span className="truncate">Extrait : {extractedTitle}</span>
-            </div>
-          )}
-
-          <div>
             <Label htmlFor="content" className="text-xs text-zinc-400">
-              Contenu / Notes du cours <span className="text-emerald-400">*</span>
+              Contenu du cours <span className="text-emerald-400">*</span>
+              <span className="text-zinc-600 ml-2">— rempli automatiquement par Smart Import, ou modifiable manuellement</span>
             </Label>
             <Textarea
               id="content"
               value={courseContent}
               onChange={(e) => setCourseContent(e.target.value)}
-              placeholder="Ex: Aujourd'hui j'ai appris les variables en Python. Une variable stocke une valeur. On utilise = pour assigner. Les types de base: int, float, str, bool. La fonction type() retourne le type..."
+              placeholder="Utilisez Smart Import ci-dessus pour remplir ce champ automatiquement, ou collez vos notes ici..."
               rows={6}
               className="mt-1 bg-zinc-950/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 font-mono text-xs"
             />
