@@ -1,12 +1,13 @@
 'use client'
 
 import { useUI, ViewName } from '@/store/ui'
-import { Brain, Map, Gamepad2, Users, Target, Settings, Trophy, RefreshCw, PanelLeftClose, PanelLeftOpen, Menu, X } from 'lucide-react'
+import { Brain, Map, Gamepad2, Users, Target, Settings, Trophy, RefreshCw, FlaskConical, PanelLeftClose, PanelLeftOpen, Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems: { id: ViewName; label: string; icon: any; desc: string }[] = [
   { id: 'dashboard', label: 'Carte', icon: Map, desc: 'Monde & cursus' },
   { id: 'virtual-world', label: 'Monde 2D', icon: Gamepad2, desc: 'Simulation RPG' },
+  { id: 'playground', label: 'Playground', icon: FlaskConical, desc: 'Outils interactifs' },
   { id: 'agents', label: 'Agents', icon: Users, desc: 'Vos moi virtuels' },
   { id: 'missions', label: 'Missions', icon: Target, desc: 'Toutes vos missions' },
   { id: 'reviews', label: 'Révisions', icon: RefreshCw, desc: 'Spaced repetition' },
@@ -18,6 +19,7 @@ function SidebarContent({ collapsed }: { collapsed: boolean }) {
   const view = useUI((s) => s.view)
   const goDashboard = useUI((s) => s.goDashboard)
   const openVirtualWorld = useUI((s) => s.openVirtualWorld)
+  const openPlayground = useUI((s) => s.openPlayground)
   const openAgents = useUI((s) => s.openAgents)
   const openMissions = useUI((s) => s.openMissions)
   const openReviews = useUI((s) => s.openReviews)
@@ -27,6 +29,7 @@ function SidebarContent({ collapsed }: { collapsed: boolean }) {
   const handleClick = (id: ViewName) => {
     if (id === 'dashboard') goDashboard()
     else if (id === 'virtual-world') openVirtualWorld()
+    else if (id === 'playground') openPlayground()
     else if (id === 'agents') openAgents()
     else if (id === 'missions') openMissions()
     else if (id === 'reviews') openReviews()

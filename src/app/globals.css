@@ -120,3 +120,58 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* === Light mode overrides === */
+/* Since Mnemo components use hardcoded zinc-* classes, we override them
+   in light mode to provide a proper light theme experience */
+:root:not(.dark) {
+  /* Map zinc-950 (app background) → white */
+  --mnemo-bg: #ffffff;
+  --mnemo-bg-secondary: #f4f4f5;
+  --mnemo-bg-tertiary: #e4e4e7;
+  --mnemo-text: #18181b;
+  --mnemo-text-muted: #52525b;
+  --mnemo-text-dim: #71717a;
+  --mnemo-border: #e4e4e7;
+  --mnemo-border-hover: #d4d4d8;
+}
+
+:root:not(.dark) body {
+  background: var(--mnemo-bg) !important;
+  color: var(--mnemo-text) !important;
+}
+
+/* Override hardcoded zinc backgrounds in light mode */
+:root:not(.dark) .bg-zinc-950 { background-color: var(--mnemo-bg) !important; }
+:root:not(.dark) .bg-zinc-950\/60 { background-color: rgba(255,255,255,0.6) !important; }
+:root:not(.dark) .bg-zinc-950\/40 { background-color: rgba(255,255,255,0.4) !important; }
+:root:not(.dark) .bg-zinc-950\/30 { background-color: rgba(244,244,245,0.3) !important; }
+:root:not(.dark) .bg-zinc-950\/50 { background-color: rgba(255,255,255,0.5) !important; }
+:root:not(.dark) .bg-zinc-900 { background-color: var(--mnemo-bg-secondary) !important; }
+:root:not(.dark) .bg-zinc-900\/40 { background-color: rgba(244,244,245,0.4) !important; }
+:root:not(.dark) .bg-zinc-900\/60 { background-color: rgba(244,244,245,0.6) !important; }
+:root:not(.dark) .bg-zinc-900\/20 { background-color: rgba(244,244,245,0.2) !important; }
+:root:not(.dark) .bg-zinc-800 { background-color: var(--mnemo-bg-tertiary) !important; }
+:root:not(.dark) .bg-zinc-800\/50 { background-color: rgba(228,228,231,0.5) !important; }
+:root:not(.dark) .bg-zinc-800\/30 { background-color: rgba(228,228,231,0.3) !important; }
+:root:not(.dark) .bg-zinc-800\/40 { background-color: rgba(228,228,231,0.4) !important; }
+:root:not(.dark) .bg-zinc-800\/60 { background-color: rgba(228,228,231,0.6) !important; }
+:root:not(.dark) .bg-white\/5 { background-color: rgba(0,0,0,0.03) !important; }
+:root:not(.dark) .bg-white\/10 { background-color: rgba(0,0,0,0.05) !important; }
+
+/* Override text colors in light mode */
+:root:not(.dark) .text-zinc-100 { color: var(--mnemo-text) !important; }
+:root:not(.dark) .text-zinc-200 { color: var(--mnemo-text) !important; }
+:root:not(.dark) .text-zinc-300 { color: var(--mnemo-text-muted) !important; }
+:root:not(.dark) .text-zinc-400 { color: var(--mnemo-text-muted) !important; }
+:root:not(.dark) .text-zinc-500 { color: var(--mnemo-text-dim) !important; }
+:root:not(.dark) .text-zinc-600 { color: var(--mnemo-text-dim) !important; }
+:root:not(.dark) .text-zinc-700 { color: var(--mnemo-text-dim) !important; }
+
+/* Override border colors in light mode */
+:root:not(.dark) .border-zinc-800 { border-color: var(--mnemo-border) !important; }
+:root:not(.dark) .border-zinc-700 { border-color: var(--mnemo-border-hover) !important; }
+:root:not(.dark) .border-zinc-800\/60 { border-color: rgba(228,228,231,0.6) !important; }
+:root:not(.dark) .border-white\/5 { border-color: rgba(0,0,0,0.05) !important; }
+:root:not(.dark) .border-white\/10 { border-color: rgba(0,0,0,0.08) !important; }
+:root:not(.dark) .border-white\/20 { border-color: rgba(0,0,0,0.12) !important; }

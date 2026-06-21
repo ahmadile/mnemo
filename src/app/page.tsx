@@ -8,6 +8,7 @@ import { MissionView } from '@/components/cerebro/mission-view'
 import { AgentsView } from '@/components/cerebro/agents-view'
 import { AgentChatView } from '@/components/cerebro/agent-chat-view'
 import { VirtualWorldView } from '@/components/cerebro/virtual-world-view'
+import { PlaygroundView } from '@/components/cerebro/playground-view'
 import { MissionsView } from '@/components/cerebro/missions-view'
 import { ReviewsView } from '@/components/cerebro/reviews-view'
 import { AchievementsView } from '@/components/cerebro/achievements-view'
@@ -45,6 +46,7 @@ export default function Home() {
             {view === 'agents' && <AgentsView />}
             {view === 'agent-chat' && <AgentChatView />}
             {view === 'virtual-world' && <VirtualWorldView />}
+            {view === 'playground' && <PlaygroundView />}
             {view === 'missions' && <MissionsView />}
             {view === 'reviews' && <ReviewsView />}
             {view === 'achievements' && <AchievementsView />}

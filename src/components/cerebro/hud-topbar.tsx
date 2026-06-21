@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useUI } from '@/store/ui'
 import { Brain, Users, Zap, Target } from 'lucide-react'
+import { ThemeToggle } from '@/components/cerebro/theme-toggle'
 
 interface Stats {
   totalXp: number
@@ -58,6 +59,7 @@ export function HudTopbar() {
     agents: 'AGENTS',
     'agent-chat': 'CONVERSATION',
     'virtual-world': 'MONDE VIRTUEL 2D',
+    playground: 'PLAYGROUND',
     missions: 'MISSIONS',
     reviews: 'RÉVISIONS',
     achievements: 'TROPHÉES',
@@ -71,6 +73,7 @@ export function HudTopbar() {
     agents: 'Vos moi virtuels',
     'agent-chat': 'Chat mémoire',
     'virtual-world': 'Simulation RPG',
+    playground: 'Outils d\'apprentissage interactifs',
     missions: 'Toutes vos missions',
     reviews: 'Spaced repetition (FSRS)',
     achievements: 'Badges & succès',
@@ -99,6 +102,7 @@ export function HudTopbar() {
           <div className="hidden md:flex">
             <StatChip icon={<Target className="w-3.5 h-3.5" />} label={`${stats.completedMissions}/${stats.missionCount}`} color="zinc" />
           </div>
+          <ThemeToggle />
         </div>
       </div>
     </header>

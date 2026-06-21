@@ -4,6 +4,7 @@ import { create } from 'zustand'
 export type ViewName =
   | 'dashboard'      // Carte fantasy interactive
   | 'virtual-world'  // Monde 2D Phaser
+  | 'playground'     // Outils d'apprentissage interactifs
   | 'agents'         // Galerie d'agents
   | 'missions'       // Toutes les missions (tous cursus)
   | 'reviews'        // Révisions espacées (FSRS)
@@ -18,11 +19,12 @@ interface UIState {
   activeCurriculumId: string | null
   activeMissionId: string | null
   activeAgentId: string | null
-  sidebarCollapsed: boolean  // desktop: collapsed sidebar
-  mobileSidebarOpen: boolean  // mobile: drawer open
+  sidebarCollapsed: boolean
+  mobileSidebarOpen: boolean
 
   goDashboard: () => void
   openVirtualWorld: () => void
+  openPlayground: () => void
   openAgents: () => void
   openMissions: () => void
   openReviews: () => void
@@ -45,6 +47,7 @@ export const useUI = create<UIState>((set) => ({
 
   goDashboard: () => set({ view: 'dashboard', mobileSidebarOpen: false }),
   openVirtualWorld: () => set({ view: 'virtual-world', mobileSidebarOpen: false }),
+  openPlayground: () => set({ view: 'playground', mobileSidebarOpen: false }),
   openAgents: () => set({ view: 'agents', mobileSidebarOpen: false }),
   openMissions: () => set({ view: 'missions', mobileSidebarOpen: false }),
   openReviews: () => set({ view: 'reviews', mobileSidebarOpen: false }),
