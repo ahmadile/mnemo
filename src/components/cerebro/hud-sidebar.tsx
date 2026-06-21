@@ -137,20 +137,22 @@ export function HudSidebar() {
       {/* Desktop sidebar (collapsible) */}
       <aside
         className={cn(
-          'hidden md:flex relative flex-col border-r border-zinc-800/60 bg-zinc-950/60 backdrop-blur-xl transition-all duration-300 flex-shrink-0',
+          'hidden md:flex flex-col border-r border-zinc-800/60 bg-zinc-950/60 backdrop-blur-xl transition-all duration-300 flex-shrink-0',
           collapsed ? 'w-16' : 'w-64'
         )}
       >
         <SidebarContent collapsed={collapsed} />
-        {/* Collapse toggle button — centered vertically, outside sidebar, clean design */}
-        <button
-          onClick={toggleSidebar}
-          className="absolute top-1/2 -translate-y-1/2 -right-3 z-50 w-7 h-7 rounded-full bg-zinc-800 border border-zinc-600 flex items-center justify-center hover:bg-zinc-700 hover:scale-110 transition-all shadow-md"
-          title={collapsed ? 'Déplier le menu' : 'Replier le menu'}
-        >
-          {collapsed ? <PanelLeftOpen className="w-3.5 h-3.5 text-zinc-300" /> : <PanelLeftClose className="w-3.5 h-3.5 text-zinc-300" />}
-        </button>
       </aside>
+
+      {/* Collapse toggle button — FIXED position, always centered on viewport, never moves */}
+      <button
+        onClick={toggleSidebar}
+        className="hidden md:flex fixed top-1/2 -translate-y-1/2 z-[60] w-7 h-7 rounded-full bg-zinc-800 border border-zinc-600 items-center justify-center hover:bg-zinc-700 hover:scale-110 transition-all shadow-md"
+        style={{ left: collapsed ? 'calc(4rem - 14px)' : 'calc(16rem - 14px)' }}
+        title={collapsed ? 'Déplier le menu' : 'Replier le menu'}
+      >
+        {collapsed ? <PanelLeftOpen className="w-3.5 h-3.5 text-zinc-300" /> : <PanelLeftClose className="w-3.5 h-3.5 text-zinc-300" />}
+      </button>
 
       {/* Mobile hamburger button (in topbar area) */}
       <button
