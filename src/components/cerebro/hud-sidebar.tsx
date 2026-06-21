@@ -39,24 +39,21 @@ function SidebarContent({ collapsed }: { collapsed: boolean }) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Logo / Brand */}
-      <div className={cn('p-4 border-b border-white/5', collapsed && 'px-3')}>
+      {/* Logo / Brand — simple, no blur/glow */}
+      <div className={cn('p-4 border-b border-zinc-800/60', collapsed && 'px-3')}>
         <button
           onClick={goDashboard}
           className="flex items-center gap-3 group w-full"
           title={collapsed ? 'MNEMO' : undefined}
         >
-          <div className="relative flex-shrink-0">
-            <div className="absolute inset-0 bg-emerald-500/40 blur-lg rounded-full group-hover:bg-emerald-400/50 transition-colors" />
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-              <Brain className="w-5 h-5 text-zinc-950" />
-            </div>
+          <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center">
+            <Brain className="w-5 h-5 text-white" />
           </div>
           {!collapsed && (
             <div className="text-left min-w-0">
-              <h1 className="font-bold text-base tracking-tight text-zinc-50">MNEMO</h1>
+              <h1 className="font-bold text-base tracking-tight text-zinc-100">MNEMO</h1>
               <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-                v1.9 · mind.net
+                v2.1 · mind.net
               </p>
             </div>
           )}
@@ -140,18 +137,18 @@ export function HudSidebar() {
       {/* Desktop sidebar (collapsible) */}
       <aside
         className={cn(
-          'hidden md:flex relative flex-col border-r border-white/5 bg-zinc-950/60 backdrop-blur-xl transition-all duration-300 flex-shrink-0',
+          'hidden md:flex relative flex-col border-r border-zinc-800/60 bg-zinc-950/60 backdrop-blur-xl transition-all duration-300 flex-shrink-0',
           collapsed ? 'w-16' : 'w-64'
         )}
       >
         <SidebarContent collapsed={collapsed} />
-        {/* Collapse toggle button — fixed at vertical center, outside the sidebar */}
+        {/* Collapse toggle button — centered vertically, outside sidebar, clean design */}
         <button
           onClick={toggleSidebar}
-          className="absolute top-20 -right-3 z-50 w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center hover:bg-zinc-700 hover:scale-110 transition-all shadow-lg"
+          className="absolute top-1/2 -translate-y-1/2 -right-3 z-50 w-7 h-7 rounded-full bg-zinc-800 border border-zinc-600 flex items-center justify-center hover:bg-zinc-700 hover:scale-110 transition-all shadow-md"
           title={collapsed ? 'Déplier le menu' : 'Replier le menu'}
         >
-          {collapsed ? <PanelLeftOpen className="w-3 h-3 text-zinc-400" /> : <PanelLeftClose className="w-3 h-3 text-zinc-400" />}
+          {collapsed ? <PanelLeftOpen className="w-3.5 h-3.5 text-zinc-300" /> : <PanelLeftClose className="w-3.5 h-3.5 text-zinc-300" />}
         </button>
       </aside>
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ActivityCalendar } from 'react-activity-calendar'
 import { Card } from '@/components/ui/card'
 import { Flame, TrendingUp } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 interface ActivityDay {
   date: string
@@ -12,13 +13,14 @@ interface ActivityDay {
 }
 
 interface ActivityHeatmapProps {
-  // Data: array of { date: 'YYYY-MM-DD', count: number }
   data: ActivityDay[]
   streak: number
 }
 
 export function ActivityHeatmap({ data, streak }: ActivityHeatmapProps) {
   const [mounted, setMounted] = useState(false)
+  const { resolvedTheme } = useTheme()
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
@@ -26,8 +28,10 @@ export function ActivityHeatmap({ data, streak }: ActivityHeatmapProps) {
 
   if (!mounted) return null
 
+  const isDark = resolvedTheme !== 'light'
+
   return (
-    <Card className="p-5 border-white/10 bg-zinc-900/40 backdrop-blur-xl">
+    <Card className="p-5 border-zinc-800/60 bg-zinc-900/40">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
@@ -61,7 +65,7 @@ export function ActivityHeatmap({ data, streak }: ActivityHeatmapProps) {
             weekdays: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
             months: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
           }}
-          colorScheme="dark"
+          colorScheme={isDark ? 'dark' : 'light'}
           blockSize={12}
           blockMargin={3}
           fontSize={11}

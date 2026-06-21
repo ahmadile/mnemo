@@ -265,7 +265,7 @@ export function DashboardView() {
         <div className="relative w-full" style={{ aspectRatio: '1000/650' }}>
           <svg
             viewBox="0 0 1000 650"
-            className="w-full h-full"
+            className="w-full h-full mnemo-map-svg"
             preserveAspectRatio="xMidYMid meet"
           >
             <defs>
