@@ -18,6 +18,8 @@ interface UIState {
   activeCurriculumId: string | null
   activeMissionId: string | null
   activeAgentId: string | null
+  sidebarCollapsed: boolean  // desktop: collapsed sidebar
+  mobileSidebarOpen: boolean  // mobile: drawer open
 
   goDashboard: () => void
   openVirtualWorld: () => void
@@ -29,6 +31,8 @@ interface UIState {
   openCurriculum: (id: string) => void
   openMission: (id: string, curriculumId?: string) => void
   openAgentChat: (id: string) => void
+  toggleSidebar: () => void
+  setMobileSidebar: (open: boolean) => void
 }
 
 export const useUI = create<UIState>((set) => ({
@@ -36,20 +40,25 @@ export const useUI = create<UIState>((set) => ({
   activeCurriculumId: null,
   activeMissionId: null,
   activeAgentId: null,
+  sidebarCollapsed: false,
+  mobileSidebarOpen: false,
 
-  goDashboard: () => set({ view: 'dashboard' }),
-  openVirtualWorld: () => set({ view: 'virtual-world' }),
-  openAgents: () => set({ view: 'agents' }),
-  openMissions: () => set({ view: 'missions' }),
-  openReviews: () => set({ view: 'reviews' }),
-  openAchievements: () => set({ view: 'achievements' }),
-  openSettings: () => set({ view: 'settings' }),
-  openCurriculum: (id) => set({ view: 'curriculum', activeCurriculumId: id }),
+  goDashboard: () => set({ view: 'dashboard', mobileSidebarOpen: false }),
+  openVirtualWorld: () => set({ view: 'virtual-world', mobileSidebarOpen: false }),
+  openAgents: () => set({ view: 'agents', mobileSidebarOpen: false }),
+  openMissions: () => set({ view: 'missions', mobileSidebarOpen: false }),
+  openReviews: () => set({ view: 'reviews', mobileSidebarOpen: false }),
+  openAchievements: () => set({ view: 'achievements', mobileSidebarOpen: false }),
+  openSettings: () => set({ view: 'settings', mobileSidebarOpen: false }),
+  openCurriculum: (id) => set({ view: 'curriculum', activeCurriculumId: id, mobileSidebarOpen: false }),
   openMission: (id, curriculumId) =>
     set((s) => ({
       view: 'mission',
       activeMissionId: id,
       activeCurriculumId: curriculumId ?? s.activeCurriculumId,
+      mobileSidebarOpen: false,
     })),
-  openAgentChat: (id) => set({ view: 'agent-chat', activeAgentId: id }),
+  openAgentChat: (id) => set({ view: 'agent-chat', activeAgentId: id, mobileSidebarOpen: false }),
+  toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+  setMobileSidebar: (open) => set({ mobileSidebarOpen: open }),
 }))

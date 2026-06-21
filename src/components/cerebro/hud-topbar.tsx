@@ -79,15 +79,10 @@ export function HudTopbar() {
 
   return (
     <header className="border-b border-white/5 bg-zinc-950/60 backdrop-blur-xl sticky top-0 z-30">
-      <div className="flex items-center justify-between px-4 md:px-6 py-3 gap-4">
-        <div className="flex items-center gap-3">
-          <div className="md:hidden">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
-              <Brain className="w-4 h-4 text-zinc-950" />
-            </div>
-          </div>
-          <div>
-            <h2 className="text-sm font-bold tracking-wider text-zinc-100">
+      <div className="flex items-center justify-between px-4 md:px-6 py-3 gap-4 pl-14 md:pl-6">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold tracking-wider text-zinc-100 truncate">
               {viewTitle[view] || 'MNEMO'}
             </h2>
             <p className="text-[10px] text-zinc-500 uppercase tracking-[0.15em]">
@@ -96,10 +91,12 @@ export function HudTopbar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <StatChip icon={<Zap className="w-3.5 h-3.5" />} label="XP" value={stats.totalXp} color="amber" />
-          <StatChip icon={<Users className="w-3.5 h-3.5" />} label="Agents" value={stats.agentCount} color="emerald" />
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          <StatChip icon={<Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />} label="XP" value={stats.totalXp} color="amber" />
           <div className="hidden sm:flex">
+            <StatChip icon={<Users className="w-3.5 h-3.5" />} label="Agents" value={stats.agentCount} color="emerald" />
+          </div>
+          <div className="hidden md:flex">
             <StatChip icon={<Target className="w-3.5 h-3.5" />} label={`${stats.completedMissions}/${stats.missionCount}`} color="zinc" />
           </div>
         </div>

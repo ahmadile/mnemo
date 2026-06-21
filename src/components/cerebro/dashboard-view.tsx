@@ -67,16 +67,54 @@ interface DailyQuest {
   type: string
 }
 
-// Positions on the fantasy map (percentage of viewBox 1000x650)
-const MAP_POSITIONS: Record<string, { x: number; y: number; size: number }> = {
-  // Default 5 positions for first 5 curricula
-  default: [
-    { x: 200, y: 180, size: 1.0 },   // top-left (Python)
-    { x: 800, y: 180, size: 1.0 },   // top-right (SQL)
-    { x: 500, y: 350, size: 1.2 },   // center (IA - bigger, more important)
-    { x: 200, y: 500, size: 1.0 },   // bottom-left (Data)
-    { x: 800, y: 500, size: 1.0 },   // bottom-right (Web)
-  ],
+// Calculate node positions dynamically based on count
+// Uses a golden spiral (phyllotaxis) that scales beautifully from 1 to 100+ cursus
+function calculatePositions(count: number): { x: number; y: number; size: number }[] {
+  const cx = 500 // center X
+  const cy = 325 // center Y
+  const positions: { x: number; y: number; size: number }[] = []
+
+  if (count <= 1) {
+    return [{ x: cx, y: cy - 100, size: 1.2 }]
+  }
+
+  // Scale node size inversely with count
+  const nodeSize = Math.max(0.45, Math.min(1.2, 1.2 - (count - 5) * 0.02))
+
+  if (count <= 6) {
+    // Small count: circle layout (aesthetically pleasing)
+    const radius = 200
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2 - Math.PI / 2
+      positions.push({
+        x: cx + Math.cos(angle) * radius,
+        y: cy + Math.sin(angle) * radius * 0.7, // ellipse for wider map
+        size: nodeSize,
+      })
+    }
+    return positions
+  }
+
+  // Large count: golden spiral (phyllotaxis like sunflower seeds)
+  // Scales gracefully to 50+ cursus
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5)) // ~2.39996 rad
+  // Scale spacing inversely with count so nodes don't overlap
+  const spacing = Math.max(18, Math.min(60, 60 - (count - 6) * 0.5))
+  const maxRadius = 420 // stay within viewBox
+
+  for (let i = 0; i < count; i++) {
+    const angle = i * goldenAngle
+    const radius = Math.sqrt(spacing * i / Math.PI) * 14
+    // Clamp to maxRadius
+    const r = Math.min(radius, maxRadius)
+    positions.push({
+      x: cx + Math.cos(angle) * r,
+      y: cy + Math.sin(angle) * r * 0.75, // ellipse
+      size: nodeSize,
+    })
+  }
+
+  return positions
 }
 
 export function DashboardView() {
@@ -138,12 +176,13 @@ export function DashboardView() {
   )
   const totalXp = curricula.reduce((sum, c) => sum + c.xp, 0)
 
-  // Compute positions for all curricula
+  // Compute positions for all curricula dynamically
   const positionedCurricula = useMemo(() => {
-    return curricula.map((c, i) => {
-      const pos = MAP_POSITIONS.default[i % MAP_POSITIONS.default.length]
-      return { ...c, position: pos }
-    })
+    const positions = calculatePositions(curricula.length)
+    return curricula.map((c, i) => ({
+      ...c,
+      position: positions[i] || { x: 500, y: 325, size: 1 },
+    }))
   }, [curricula])
 
   return (
