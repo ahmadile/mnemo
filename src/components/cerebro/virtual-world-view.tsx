@@ -124,7 +124,7 @@ export function VirtualWorldView() {
           // No external assets to load — we use emoji text as characters
         }
 
-        create() {
+        async create() {
           const W = GAME_W
           const H = GAME_H
 
@@ -141,22 +141,57 @@ export function VirtualWorldView() {
             g.lineBetween(0, y, W, y)
           }
 
-          // --- Zones (4 corners) ---
-          const zones = [
-            { x: 0, y: 0, w: 220, h: 160, color: 0x3b82f6, alpha: 0.12, label: 'PYTHON' },
-            { x: W - 220, y: 0, w: 220, h: 160, color: 0x10b981, alpha: 0.12, label: 'SQL' },
-            { x: 0, y: H - 160, w: 220, h: 160, color: 0xa855f7, alpha: 0.12, label: 'IA' },
-            { x: W - 220, y: H - 160, w: 220, h: 160, color: 0xf59e0b, alpha: 0.12, label: 'DATA' },
+          // --- Dynamic zones based on user's curricula ---
+          // Fetch curricula from API to create zones dynamically
+          const curriculaRes = await fetch('/api/curricula')
+          const curriculaData = await curriculaRes.json()
+          const userCurricula = curriculaData.curricula || []
+
+          // Default zones if no curricula yet (show hints)
+          const defaultZones = [
+            { x: 0, y: 0, w: 220, h: 160, color: 0x3b82f6, alpha: 0.08, label: 'PYTHON' },
+            { x: W - 220, y: 0, w: 220, h: 160, color: 0x10b981, alpha: 0.08, label: 'SQL' },
+            { x: 0, y: H - 160, w: 220, h: 160, color: 0xa855f7, alpha: 0.08, label: 'IA' },
+            { x: W - 220, y: H - 160, w: 220, h: 160, color: 0xf59e0b, alpha: 0.08, label: 'DATA' },
           ]
-          zones.forEach((z) => {
+
+          // If user has curricula, create zones for each (scaled by count)
+          let zonesToShow = defaultZones
+          if (userCurricula.length > 0) {
+            const count = userCurricula.length
+            // Scale zone size inversely with count
+            const zoneW = Math.max(100, Math.min(220, 220 - (count - 4) * 8))
+            const zoneH = Math.max(70, Math.min(160, 160 - (count - 4) * 6))
+            const cols = Math.ceil(Math.sqrt(count))
+            const rows = Math.ceil(count / cols)
+            const cellW = W / cols
+            const cellH = (H - 100) / rows  // leave space for top/bottom
+
+            zonesToShow = userCurricula.slice(0, 30).map((c: any, i: number) => {
+              const col = i % cols
+              const row = Math.floor(i / cols)
+              const colorNum = parseInt((c.color || '#3b82f6').replace('#', ''), 16)
+              return {
+                x: col * cellW + (cellW - zoneW) / 2,
+                y: 60 + row * cellH + (cellH - zoneH) / 2,  // 60px offset for top bar
+                w: zoneW,
+                h: zoneH,
+                color: colorNum,
+                alpha: 0.10,
+                label: c.name.toUpperCase().slice(0, 12),
+              }
+            })
+          }
+
+          zonesToShow.forEach((z: any) => {
             const zoneG = this.add.graphics()
             zoneG.fillStyle(z.color, z.alpha)
             zoneG.fillRect(z.x, z.y, z.w, z.h)
             zoneG.lineStyle(1, z.color, 0.4)
             zoneG.strokeRect(z.x, z.y, z.w, z.h)
-            this.add.text(z.x + 10, z.y + 10, z.label, {
+            this.add.text(z.x + 8, z.y + 8, z.label, {
               fontFamily: 'sans-serif',
-              fontSize: '12px',
+              fontSize: zonesToShow.length > 10 ? '9px' : '11px',
               color: '#' + z.color.toString(16).padStart(6, '0'),
               fontStyle: 'bold',
             })

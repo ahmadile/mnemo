@@ -137,18 +137,18 @@ export function HudSidebar() {
       {/* Desktop sidebar (collapsible) */}
       <aside
         className={cn(
-          'hidden md:flex flex-col border-r border-white/5 bg-zinc-950/60 backdrop-blur-xl transition-all duration-300 flex-shrink-0',
+          'hidden md:flex relative flex-col border-r border-white/5 bg-zinc-950/60 backdrop-blur-xl transition-all duration-300 flex-shrink-0',
           collapsed ? 'w-16' : 'w-64'
         )}
       >
         <SidebarContent collapsed={collapsed} />
-        {/* Collapse toggle button */}
+        {/* Collapse toggle button — fixed at vertical center, outside the sidebar */}
         <button
           onClick={toggleSidebar}
-          className="absolute top-1/2 -translate-y-1/2 -right-3 z-40 w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center hover:bg-zinc-700 transition-colors hidden md:flex"
+          className="absolute top-20 -right-3 z-50 w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center hover:bg-zinc-700 hover:scale-110 transition-all shadow-lg"
           title={collapsed ? 'Déplier le menu' : 'Replier le menu'}
         >
-          {collapsed ? <PanelLeftOpen className="w-3.5 h-3.5 text-zinc-400" /> : <PanelLeftClose className="w-3.5 h-3.5 text-zinc-400" />}
+          {collapsed ? <PanelLeftOpen className="w-3 h-3 text-zinc-400" /> : <PanelLeftClose className="w-3 h-3 text-zinc-400" />}
         </button>
       </aside>
 

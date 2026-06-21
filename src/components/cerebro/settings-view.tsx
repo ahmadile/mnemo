@@ -18,6 +18,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   BookMarked,
+  Plug,
+  Code2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -225,6 +227,70 @@ export function SettingsView() {
               )}
               Réinitialiser la base
             </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* MCP Integration */}
+      <Card className="p-6 border-cyan-500/30 bg-cyan-500/5 backdrop-blur-xl">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+            <Plug className="w-4 h-4 text-cyan-400" />
+          </div>
+          <h2 className="font-bold">MCP — Model Context Protocol</h2>
+          <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/40 text-[9px]">
+            NEW
+          </Badge>
+        </div>
+        <div className="space-y-3">
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Mnemo expose ses outils d'apprentissage via MCP — le protocole standard d'Anthropic
+            pour connecter les IA aux applications. Connectez Claude Desktop, Cursor, ou
+            n'importe quel client MCP à Mnemo pour accéder à vos exercices, agents et statistiques
+            directement depuis votre assistant IA.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {[
+              { tool: 'list_curricula', desc: 'Liste tous vos cursus' },
+              { tool: 'get_exercise', desc: 'Récupère un exercice par sujet' },
+              { tool: 'list_reviews', desc: 'Missions à réviser (FSRS)' },
+              { tool: 'get_agent', desc: 'Info sur un agent-mémoire' },
+              { tool: 'get_stats', desc: 'Statistiques d\'apprentissage' },
+            ].map((t) => (
+              <div key={t.tool} className="flex items-center gap-2 p-2 rounded-md bg-white/5 border border-white/10">
+                <Code2 className="w-3 h-3 text-cyan-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[10px] font-mono text-cyan-300">{t.tool}</div>
+                  <div className="text-[9px] text-zinc-500">{t.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <label className="text-xs text-zinc-500 uppercase tracking-wider">Configuration Claude Desktop</label>
+            <p className="text-[10px] text-zinc-600 mt-1 mb-2">
+              Ajoutez ceci à votre fichier <code className="text-cyan-400">claude_desktop_config.json</code> :
+            </p>
+            <pre className="text-[10px] text-zinc-300 bg-zinc-950 rounded-lg p-3 border border-white/10 overflow-x-auto font-mono">
+{`{
+  "mcpServers": {
+    "mnemo": {
+      "url": "http://localhost:3000/api/mcp"
+    }
+  }
+}`}
+            </pre>
+          </div>
+
+          <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+            <span>Compatible Claude Desktop, Cursor, Windsurf, et tout client MCP</span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+            <span>5 outils exposés : exercices, agents, révisions, stats</span>
           </div>
         </div>
       </Card>
