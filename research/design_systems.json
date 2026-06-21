@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://blog.khanacademy.org/how-we-rebuilt-khan-academys-color-system-from-the-ground-up",
+    "name": "How We Rebuilt Khan Academy's Color System from the Ground Up",
+    "snippet": "After completing the primitives palette, we updated the existing semantic tokens to reference the new primitives and began designing the new UI.",
+    "host_name": "blog.khanacademy.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.prnewswire.com/news-releases/duolingo-and-khan-academy-dominate-edtech-ai-visibility-according-to-5w-ai-intelligence-302776463.html",
+    "name": "Duolingo and Khan Academy Dominate EdTech AI Visibility",
+    "snippet": "The report identifies five distinct visibility patterns inside EdTech. Khan Academy and Coursera dominate the platform-and-broad-learning ...",
+    "host_name": "www.prnewswire.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/@blessingokpala/ai-in-education-ux-how-khan-academy-is-shaping-human-ai-learning-experiences-9ec3492dbcc7",
+    "name": "AI in Education UX: How Khan Academy is Shaping Human-AI",
+    "snippet": "If the UX of platforms like Khan Academy and Duolingo teaches us anything, it's this: the future of AI in education will be defined by empathy, ...",
+    "host_name": "medium.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.designsystems.com/about-wonder-blocks-khan-academys-design-system-and-the-story-behind-it",
+    "name": "Wonder Blocks: on the creation of Khan Academy's design system",
+    "snippet": "It allowed front-end engineers to experiment with various technical ・ build UI aligned to our grid system) The prototype we built to visualize how various ...",
+    "host_name": "www.designsystems.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.linkedin.com/posts/justinvolz_the-interactive-problem-solving-mobile-app-activity-7351951492200742912-6zde",
+    "name": "How Brilliant's gamified learning app transitions work - LinkedIn",
+    "snippet": "Brilliant is a gamified learning app, similar to Duolingo. Our new AI-driven design templates empower creators and developers to design ...",
+    "host_name": "www.linkedin.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.threads.com/@uxui.heroes/post/DX-yHavjAOz/free-uiux-design-course-coursera-ed-x-udemy-khan-academy-free-code-camp-google",
+    "name": "FREE uiux design course 1. Coursera 2. edX 3. Udemy 4. Khan",
+    "snippet": "FREE uiux design course... 1. Coursera 2. edX 3. Udemy 4. Khan Academy 5. freeCodeCamp 6. Google Digital Garage 7. LinkedIn Learning.",
+    "host_name": "www.threads.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://gtcsys.com/faq/can-you-provide-examples-of-successful-ui-ux-designs-for-educational-platforms",
+    "name": "Can you provide examples of successful UI/UX designs for  - GTC",
+    "snippet": "Duolingo is another example of a successful UI/UX design for educational platforms, particularly in the language learning domain. It combines gamification with ...",
+    "host_name": "gtcsys.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dribbble.com/search/khan-academy",
+    "name": "khan academy - Dribbble",
+    "snippet": "Explore thousands of high-quality khan academy images on Dribbble. Your resource to get inspired, discover and connect with designers worldwide.",
+    "host_name": "dribbble.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

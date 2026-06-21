@@ -17,6 +17,7 @@ import {
   FileText,
   AlertTriangle,
   CheckCircle2,
+  BookMarked,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -225,6 +226,63 @@ export function SettingsView() {
               Réinitialiser la base
             </Button>
           </div>
+        </div>
+      </Card>
+
+      {/* Export Obsidian */}
+      <Card className="p-6 border-purple-500/30 bg-purple-500/5 backdrop-blur-xl">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center">
+            <BookMarked className="w-4 h-4 text-purple-400" />
+          </div>
+          <h2 className="font-bold">Export Obsidian</h2>
+        </div>
+        <div className="space-y-3">
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Exportez vos missions complétées en Markdown compatible Obsidian. Chaque mission devient
+            un fichier <code className="text-purple-300">.md</code> avec frontmatter YAML, wikilinks
+            <code className="text-purple-300">[[...]]</code> entre notions, et métadonnées de révision (FSRS).
+          </p>
+          <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+            <span>Compatible Obsidian, Logseq, Foam, et tout lecteur Markdown</span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+            <span>Inclut les dates de prochaine révision (spaced repetition)</span>
+          </div>
+          <Button
+            onClick={async () => {
+              try {
+                const res = await fetch('/api/export/obsidian')
+                const data = await res.json()
+                if (!res.ok) throw new Error(data.error)
+                if (data.files.length === 0) {
+                  toast.info('Aucune mission complétée à exporter')
+                  return
+                }
+                // Create a downloadable JSON with all files (client-side)
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `${data.vaultName}.json`
+                a.click()
+                URL.revokeObjectURL(url)
+                toast.success(`${data.stats.totalMissions} missions exportées (${data.stats.totalCurricula} cursus)`)
+              } catch (e: any) {
+                toast.error(e.message)
+              }
+            }}
+            className="bg-purple-500 hover:bg-purple-400 text-white"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exporter le vault (JSON)
+          </Button>
+          <p className="text-[10px] text-zinc-600">
+            Le JSON contient tous les fichiers Markdown. Pour un ZIP, utilisez un script Python
+            ou convertissez avec <code>jq</code>. Un export ZIP natif est prévu dans une prochaine version.
+          </p>
         </div>
       </Card>
 

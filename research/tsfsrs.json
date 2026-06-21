@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://github.com/open-spaced-repetition/ts-fsrs",
+    "name": "open-spaced-repetition/ts-fsrs - GitHub",
+    "snippet": "ts-fsrs is a TypeScript toolkit for building spaced repetition systems with FSRS. Packages. This repository contains two main packages: Package, Description ...",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.jsdelivr.com/package/npm/ts-fsrs",
+    "name": "ts-fsrs CDN by jsDelivr - A CDN for npm and GitHub",
+    "snippet": "ts-fsrs is a TypeScript package that helps developers build their own spaced repetition system using the Free Spaced Repetition Scheduler algorithm. Table ...",
+    "host_name": "www.jsdelivr.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://jsr.io/@austinshelby/simple-ts-fsrs",
+    "name": "@austinshelby/simple-ts-fsrs - JSR",
+    "snippet": "A minimal implementation of the FSRS (Free Spaced Repetition Scheduler) algorithm written in TypeScript. Perfect for creating your own spaced repetition ...",
+    "host_name": "jsr.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://rickcarlino.com/2024/femto-fsrs.html",
+    "name": "Typescript Implementation of FSRS (Free Spaced Repetition",
+    "snippet": "There is a new spaced repetition algorithm generating a lot of buzz in the SRS community in 2024: The Free Spaced Repetition Scheduler.",
+    "host_name": "rickcarlino.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.npmjs.com/package/@squeakyrobot/fsrs",
+    "name": "@squeakyrobot/fsrs - npm",
+    "snippet": "A TypeScript library for spaced repetition scheduling using the FSRS v4.5 algorithm with optional v6 support. Latest version: 1.0.0, last ...",
+    "host_name": "www.npmjs.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.austinshelby.com/open-source/simple-ts-fsrs",
+    "name": "simple-ts-fsrs - Austin Shelby",
+    "snippet": "A minimal implementation of the FSRS (Free Spaced Repetition Scheduler) algorithm written in TypeScript.",
+    "host_name": "www.austinshelby.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

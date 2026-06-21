@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://github.com/judge0/judge0",
+    "name": "Judge0 - GitHub",
+    "snippet": "Judge0 is an open-source online code execution system that enables the robust, fast, scalable, and sandboxed execution of AI-generated code, with support for ...",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/webdev/comments/f8rgrc/how_will_you_go_about_creating_an_online_code",
+    "name": "How will you go about creating an online code judge system like",
+    "snippet": "Hello everyone, im working on a project where i need to build an online coding judge and run user submitted code.",
+    "host_name": "www.reddit.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://imehboob.medium.com/my-experience-building-a-leetcode-like-online-judge-and-how-you-can-build-one-7e05e031455d",
+    "name": "My Experience Building a Leetcode-Like Online Judge and How",
+    "snippet": "In this post, I'll walk you through how I created a backend solution — Algocode (though not as refined as leetcode, of course, but still a work ...",
+    "host_name": "imehboob.medium.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=uOlP7njiaCg",
+    "name": "Build your own LeetCode | Online Code Execution Engiene | Judge0",
+    "snippet": "Ever wanted to create your own coding platform like HackerRank or LeetCode? In this video, I'll walk you through setting up the backend ...",
+    "host_name": "www.youtube.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.quora.com/How-can-I-create-a-website-like-HackerRank-or-LeetCode-where-people-can-practice-coding-questions-and-how-can-I-add-a-code-editor-inside-a-website",
+    "name": "How to create a website like HackerRank or LeetCode  - Quora",
+    "snippet": "Checkout the open-source online judges like DomJudge (Programming Contest Jury System) and Sharif Judge (mjnaderi/Sharif-Judge). I would ...",
+    "host_name": "www.quora.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://leetcode.com",
+    "name": "LeetCode - The World's Leading Online Programming Learning",
+    "snippet": "At our core, LeetCode is about developers. Our powerful development tools such as Playground help you test, debug and even write your own projects online.",
+    "host_name": "leetcode.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.augmentcode.com/tools/best-open-source-code-review-tools",
+    "name": "12 Best Open Source Code Review Tools in 2026",
+    "snippet": "Compare 12 open source code review tools: GitLab CE vs Gitea vs Gerrit. Resource requirements, scaling limits, and when teams outgrow each ...",
+    "host_name": "www.augmentcode.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://judge0.com",
+    "name": "Judge0 - Code Execution Made Simple for Every Business",
+    "snippet": "Robust, scalable, and open-source online code execution system that can be used to build a wide range of applications that need online code execution features.",
+    "host_name": "judge0.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

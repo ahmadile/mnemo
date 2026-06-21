@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://www.reddit.com/r/medicalschoolanki/comments/190muwg/fsrs_or_sm2_understanding_anki_for_better_prep",
+    "name": "FSRS or SM-2? Understanding Anki for better prep - Reddit",
+    "snippet": "FSRS (Free Spaced Repetition Scheduler) : It is an Open Source Spaced Repetition algorithm. FSRS is the most popular extension for Anki in ...",
+    "host_name": "www.reddit.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/open-spaced-repetition/awesome-fsrs",
+    "name": "open-spaced-repetition/awesome-fsrs - GitHub",
+    "snippet": "Free and open source, FSRS available as an opt-in feature replacing the default SM-2 algorithm. to schedule your reviews. and workload forecasting.\nOffers free synchronization service using AnkiWeb, with community-shared add-ons and decks. FSRS available as an opt-in feature replacing the default SM-2 ...",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://faqs.ankiweb.net/what-spaced-repetition-algorithm",
+    "name": "What spaced repetition algorithm does Anki use?",
+    "snippet": "SM-2 defines an initial interval of 1 day then 6 days. FSRS FSRS aims to learn your memory patterns and schedule reviews more efficiently than SM-2. FSRS is ...\nThe first one is based on the SuperMemo 2 algorithm, and the second one is called FSRS. Anki's algorithm differs from SM-2 in some respects. Notably: SM-2 ...",
+    "host_name": "faqs.ankiweb.net",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://news.ycombinator.com/item?id=42908863",
+    "name": "FSRS is a really clever iteration on Anki's SM2 algorithm. I've been",
+    "snippet": "FSRS is a really clever iteration on Anki's SM2 algorithm. Spaced repetition can allow for infinite recall great collection of open source libraries at github. ...\nFSRS is a really clever iteration on Anki's SM2 algorithm. I've been playing around with various spaced repetition implementations lately - there's a great ...",
+    "host_name": "news.ycombinator.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://help.remnote.com/en/articles/6026144-the-anki-sm-2-spaced-repetition-algorithm",
+    "name": "The Anki SM-2 Spaced Repetition Algorithm - RemNote Help Center",
+    "snippet": "It is based on the scheduling algorithm used by the popular flashcard software Anki, with minor changes intended to maximize your long-term learning.",
+    "host_name": "help.remnote.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://forums.ankiweb.net/t/how-to-use-the-next-generation-spaced-repetition-algorithm-fsrs-on-anki/25415",
+    "name": "How to use the next-generation spaced repetition algorithm FSRS",
+    "snippet": "FSRS works well on AnkiMobile. You can see the differences between pasting the code into custom scheduling and deleting the code.",
+    "host_name": "forums.ankiweb.net",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=v2asudkSFek",
+    "name": "FSRS vs SM2: How Spaced Repetition Algorithms Work - YouTube",
+    "snippet": "A technical deep dive into the SM2 and FSRS algorithms that power spaced repetition in tools like Anki. Whether you're curious about how ...",
+    "host_name": "www.youtube.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/open-spaced-repetition/fsrs4anki/wiki/spaced-repetition-algorithm:-a-three%E2%80%90day-journey-from-novice-to-expert",
+    "name": "Spaced Repetition Algorithm: A Three‐Day Journey from Novice to",
+    "snippet": "A modern Anki custom scheduling based on Free Spaced Repetition Scheduler algorithm - Spaced Repetition Algorithm: A Three‐Day Journey from ...",
+    "host_name": "github.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

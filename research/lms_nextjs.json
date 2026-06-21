@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://github.com/topics/learning-management-system?l=typescript&o=asc&s=forks",
+    "name": "learning-management-system · GitHub Topics",
+    "snippet": "Scalable LMS platform frontend built with Next.js and React, supporting authentication, course management, enrolments, and interactive learning features.",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=OAyQ3Wyyzfg",
+    "name": "Build A Course Platform LMS With Next.js 15, React 19  - YouTube",
+    "snippet": "Try ArcJet: https://launch.arcjet.com/KT8bSa0 Get Clerk: https://go.clerk.com/Zz0KeQZ This project not only will show you how to create a ...",
+    "host_name": "www.youtube.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/topics/lms-website?l=typescript&o=desc&s=forks",
+    "name": "lms-website · GitHub Topics",
+    "snippet": "A modern full-stack Learning Management System (LMS) built with Next.js and Express, featuring secure payments, analytics, and real-time course management.",
+    "host_name": "github.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dev.to/aryprogrammer/simply-learn-an-ai-first-lms-with-nextjs-16-xano-2i9h",
+    "name": "Simply Learn - An AI-First LMS with Next.js 16 & Xano",
+    "snippet": "TL;DR. Simply Learn is a full-stack Learning Management System built with Next.js 16 on the frontend and Xano on the backend.",
+    "host_name": "dev.to",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/nextjs/comments/1jbhkop/im_looking_for_nextjs_lms",
+    "name": "I'm looking for Nextjs LMS - Reddit",
+    "snippet": "I need to include an LMS in an already running nextjs corporate site. I'm aware of Code with Antonio's, which seems like a decent option, ...",
+    "host_name": "www.reddit.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/topics/elearning-platform?l=typescript&o=desc&s=updated",
+    "name": "elearning-platform · GitHub Topics",
+    "snippet": "A modern, full-featured e-learning platform built with Next.js and TypeScript. Includes course payments, multi-language support, and admin dashboard with ...",
+    "host_name": "github.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/shounoop/learning-management-system",
+    "name": "Build a fullstack learning management system with Next.js - GitHub",
+    "snippet": "A fullstack Learning Management System (LMS) built with Next.js, Prisma, MySQL, and modern frontend technologies. This project enables educators to create, ...",
+    "host_name": "github.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/topics/learning-management-system?l=php&o=desc&s=stars",
+    "name": "learning-management-system · GitHub Topics",
+    "snippet": "A professional website for a Learning Management System using HTML, CSS, JavaScript and PHP. A website designed for a University.",
+    "host_name": "github.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

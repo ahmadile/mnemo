@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://www.reddit.com/r/nextjs/comments/1qrnant/best_selfhosted_error_reporting_tool_for_next",
+    "name": "Best self-hosted error reporting tool for Next : r/nextjs - Reddit",
+    "snippet": "Self-hosted Sentry (GlitchTip) is my go-to. It's a lightweight open-source Sentry alternative that handles Next.js errors well. If you want ...",
+    "host_name": "www.reddit.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://uptrace.dev/comparisons/sentry-alternatives",
+    "name": "Top 7 Sentry Alternatives for Error Tracking in 2025 - Uptrace",
+    "snippet": "Explore 7 proven Sentry alternatives including Uptrace, Telebugs, and Rollbar. Compare open-source, self-hosted, and commercial error ...\nExplore 7 proven Sentry alternatives including Uptrace, Telebugs, and Rollbar. Compare open-source, self-hosted, and commercial error tracking solutions with detailed feature breakdowns.",
+    "host_name": "uptrace.dev",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://european-alternatives.eu/alternative-to/sentry",
+    "name": "European alternatives to Sentry",
+    "snippet": "Bugsink is an error tracker you can self-host or use as a hosted service, both fully compatible with the Sentry SDK. Self-hosted: Data stays fully under your ...",
+    "host_name": "european-alternatives.eu",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://glitchtip.com",
+    "name": "GlitchTip: Open Source Error Tracking",
+    "snippet": "GlitchTip is an open source, Sentry API compatible error tracking platform.",
+    "host_name": "glitchtip.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://oneuptime.com/blog/post/2026-03-12-10-best-sentry-alternatives-2026/view",
+    "name": "10 Best Sentry Alternatives in 2026 - OneUptime",
+    "snippet": "How to Choose ... Want to self-host? Look at OneUptime, GlitchTip, or Highlight.io. All three are open source with straightforward deployments.",
+    "host_name": "oneuptime.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://news.ycombinator.com/item?id=36008564",
+    "name": "GlitchTip: An open source, Sentry API compatible error tracking",
+    "snippet": "It looks like GlitchTip only requires 4 components (backend, workers, Redis, and postgresql). Self Hosted Sentry requires many more (at least a dozen).",
+    "host_name": "news.ycombinator.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

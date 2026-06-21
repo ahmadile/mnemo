@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://github.com/judge0/judge0",
+    "name": "Judge0 - GitHub",
+    "snippet": "Judge0 (pronounced like \"judge zero\") is a robust, scalable, and open-source online code execution system. You can use it to build a wide range of applications.",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/developersIndia/comments/1jmo64n/created_a_leetcode_solver_which_is_completely",
+    "name": "Created a Leetcode solver which is completely hidden from  - Reddit",
+    "snippet": "If you are talking about the interview code , tag lined \"fck leetcode\", then it's no more open source or free, but you can find its github repos.",
+    "host_name": "www.reddit.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/SameerKhurd/algo-bytes",
+    "name": "AlgoBytes : LeetCode-like Coding Platform [Full Stack] - GitHub",
+    "snippet": "This repository contains the codebase for a LeetCode-like coding platform AlgoBytes, designed to provide users with coding challenges and an integrated code ...",
+    "host_name": "github.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/ATOAPaymentsLimited/CodeVerdict",
+    "name": "CodeVerdict - Open-Source Coding Exam Platform - GitHub",
+    "snippet": "No code changes needed. Open-source alternative to HackerRank, CodeSignal, HackerEarth, LeetCode, Codility, TestDome, CoderPad, CodeChef, and Codeforces.",
+    "host_name": "github.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/topics/leetcode-clone?o=asc&s=stars",
+    "name": "leetcode-clone · GitHub Topics",
+    "snippet": "A modern, fully functional coding evaluation platform like LeetCode built for CodeHarborHub. Supports problem solving, code execution, test cases, submissions, ...",
+    "host_name": "github.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.linkedin.com/posts/akansha-khandelwal31_coding-leetcode-extension-activity-7283416541843374081-iunq",
+    "name": "Akansha Khandelwal - LEETCODE HACKS 101 - LinkedIn",
+    "snippet": "LEETCODE HACKS 101 Love Leetcoding? Here is list of some of the most useful chrome extensions for Leetcode ‍ 1.",
+    "host_name": "www.linkedin.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/@balbirms/how-i-built-a-coding-practice-platform-like-hackerrank-leetcode-2025-6aba0414be97",
+    "name": "How I Built a Coding Practice Platform Like HackerRank & LeetCode",
+    "snippet": "In this blog, I'll walk you through how I built a platform where users can solve coding problems, run their code, and get real-time feedback.",
+    "host_name": "medium.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://leetcode.com",
+    "name": "LeetCode - The World's Leading Online Programming Learning",
+    "snippet": "At our core, LeetCode is about developers. Our powerful development tools such as Playground help you test, debug and even write your own projects online.",
+    "host_name": "leetcode.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

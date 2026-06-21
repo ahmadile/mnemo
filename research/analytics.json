@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://openpanel.dev/articles/self-hosted-web-analytics",
+    "name": "Self-Hosted Web Analytics 2026 — Plausible vs Matomo vs Umami",
+    "snippet": "We tested 7 self-hosted web analytics tools on deployment, features, and cost. Plausible, Matomo, Umami, GoatCounter, OpenPanel compared ...",
+    "host_name": "openpanel.dev",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/nextjs/comments/1hcnag7/analytics_umami_plausible_posthog_or",
+    "name": "Analytics: Umami, Plausible, Posthog, or ? : r/nextjs - Reddit",
+    "snippet": "Umami is self-hosted, which means more control and no ongoing cost once it's running, but you're responsible for setup, maintenance, and uptime.",
+    "host_name": "www.reddit.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://posthog.com/blog/best-open-source-analytics-tools",
+    "name": "8 best open source analytics tools you can self-host - PostHog",
+    "snippet": "Plausible – Best lightweight, privacy-first web analytics tool; OpenPanel – Best simple product analytics for developers who want more than ...",
+    "host_name": "posthog.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/@coders.stop/setting-up-self-hosted-analytics-posthog-plausible-umami-comparison-ac4e7e826486",
+    "name": "Setting Up Self-Hosted Analytics (PostHog, Plausible, Umami",
+    "snippet": "Self-hosted analytics often doesn't require cookie banners because you're not sharing data with third parties. Plausible and Umami are ...",
+    "host_name": "medium.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://aaronjbecker.com/posts/umami-vs-plausible-vs-matomo-self-hosted-analytics",
+    "name": "Umami vs Plausible vs Matomo for Self-Hosted Analytics",
+    "snippet": "Integrating Umami, a privacy-focused, open source analytics service, into a self-hosted stack built with Docker Compose and fronted by a Traefik ...",
+    "host_name": "aaronjbecker.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/plausible/analytics/discussions/3099",
+    "name": "Open source commitment? · plausible analytics · Discussion #3099",
+    "snippet": "It's exactly the same product as our Plausible Analytics Cloud solution, only the self-hosted version you have to install, host and manage yourself. but you ...",
+    "host_name": "github.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://plausible.io/self-hosted-web-analytics",
+    "name": "Plausible: Self-Hosted Google Analytics alternative",
+    "snippet": "Plausible Analytics is a privacy-friendly and open source Google Analytics alternative that you can install and self-host on your server.",
+    "host_name": "plausible.io",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://discuss.privacyguides.net/t/open-source-self-hosted-web-analytics/16419",
+    "name": "Open-Source & Self-Hosted Web Analytics - General",
+    "snippet": "I would like to expand the discussion on privacy and security to web analytics, more specifically self-hosted and open-source analytics tools.",
+    "host_name": "discuss.privacyguides.net",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

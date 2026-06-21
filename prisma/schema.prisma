@@ -43,8 +43,13 @@ model Mission {
   difficulty    String   @default("rookie") // rookie | pro | elite
   xp            Int      @default(100)
   status        String   @default("active") // active | completed
-  sourceContent String   @default("") // The course content that generated this mission
-  language      String   @default("python") // The language the user must write code in
+  sourceContent String   @default("")
+  language      String   @default("python")
+  // Spaced repetition fields (ts-fsrs algorithm)
+  nextReviewAt  DateTime?  // When this mission should be reviewed next
+  reviewCount   Int      @default(0)  // Number of times reviewed
+  lastReviewAt  DateTime?  // Last review timestamp
+  fsrsState     String   @default("{}")  // JSON: FSRS card state (stability, difficulty, etc.)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   submissions   MissionSubmission[]

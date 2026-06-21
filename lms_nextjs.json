@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://github.com/topics/learning-management-system?l=typescript&o=asc&s=forks",
+    "name": "learning-management-system · GitHub Topics",
+    "snippet": "Scalable LMS platform frontend built with Next.js and React, supporting authentication, course management, enrolments, and interactive learning features.",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/bemnet16/Learning-management-system",
+    "name": "learning management system web app (Next Js 13 & Express Js)",
+    "snippet": "Welcome to the LMS App - a state-of-the-art Learning Management System designed to provide an interactive and comprehensive online learning experience.",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/MrHacker26/next-lms",
+    "name": "MrHacker26/next-lms: Next LMS: A blazing-fast, user  - GitHub",
+    "snippet": "This is a Next.js project bootstrapped with create-next-app. Getting Started First, run the development server: npm run dev # or yarn dev # or pnpm dev # or ...",
+    "host_name": "github.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dev.to/aryprogrammer/simply-learn-an-ai-first-lms-with-nextjs-16-xano-2i9h",
+    "name": "Simply Learn - An AI-First LMS with Next.js 16 & Xano",
+    "snippet": "TL;DR. Simply Learn is a full-stack Learning Management System built with Next.js 16 on the frontend and Xano on the backend.",
+    "host_name": "dev.to",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/nextjs/comments/1jbhkop/im_looking_for_nextjs_lms",
+    "name": "I'm looking for Nextjs LMS - Reddit",
+    "snippet": "I need to include an LMS in an already running nextjs corporate site. I'm aware of Code with Antonio's, which seems like a decent option, ...",
+    "host_name": "www.reddit.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.facebook.com/groups/frontenddevelopper/posts/1028824222678391",
+    "name": "React js or Next js for LMS frontend? - Facebook",
+    "snippet": "React's component-based architecture and virtual DOM make it easy to build complex UIs, while Next.js simplifies server-side rendering, routing, ...",
+    "host_name": "www.facebook.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=OAyQ3Wyyzfg",
+    "name": "Build A Course Platform LMS With Next.js 15, React 19  - YouTube",
+    "snippet": "... GitHub Code: https://github.com/WebDevSimplified/course-platform Next.js Bug GitHub Issue: https://github.com/vercel/next.js/issues/74757 ...",
+    "host_name": "www.youtube.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/DevKrishnasai/lms",
+    "name": "DevKrishnasai/lms: Comprehensive Learning Management  - GitHub",
+    "snippet": "This repository contains the code for a comprehensive Learning Management System built with Next.js, Tailwind CSS, Shadcn UI, React Video, Prisma ORM, ...",
+    "host_name": "github.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

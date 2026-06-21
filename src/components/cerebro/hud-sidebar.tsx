@@ -1,7 +1,7 @@
 'use client'
 
 import { useUI, ViewName } from '@/store/ui'
-import { Brain, Map, Gamepad2, Users, Target, Settings, Trophy } from 'lucide-react'
+import { Brain, Map, Gamepad2, Users, Target, Settings, Trophy, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems: { id: ViewName; label: string; icon: any; desc: string }[] = [
@@ -9,6 +9,7 @@ const navItems: { id: ViewName; label: string; icon: any; desc: string }[] = [
   { id: 'virtual-world', label: 'Monde 2D', icon: Gamepad2, desc: 'Simulation RPG' },
   { id: 'agents', label: 'Agents', icon: Users, desc: 'Vos moi virtuels' },
   { id: 'missions', label: 'Missions', icon: Target, desc: 'Toutes vos missions' },
+  { id: 'reviews', label: 'Révisions', icon: RefreshCw, desc: 'Spaced repetition' },
   { id: 'achievements', label: 'Trophées', icon: Trophy, desc: 'Badges & succès' },
   { id: 'settings', label: 'Réglages', icon: Settings, desc: 'Profil & config' },
 ]
@@ -19,6 +20,7 @@ export function HudSidebar() {
   const openVirtualWorld = useUI((s) => s.openVirtualWorld)
   const openAgents = useUI((s) => s.openAgents)
   const openMissions = useUI((s) => s.openMissions)
+  const openReviews = useUI((s) => s.openReviews)
   const openAchievements = useUI((s) => s.openAchievements)
   const openSettings = useUI((s) => s.openSettings)
 
@@ -27,6 +29,7 @@ export function HudSidebar() {
     else if (id === 'virtual-world') openVirtualWorld()
     else if (id === 'agents') openAgents()
     else if (id === 'missions') openMissions()
+    else if (id === 'reviews') openReviews()
     else if (id === 'achievements') openAchievements()
     else if (id === 'settings') openSettings()
   }

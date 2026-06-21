@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://github.com/isuru89/oasis",
+    "name": "GitHub - isuru89/oasis: Open-source PBML (Points, Badges",
+    "snippet": "Oasis is an event-driven gamification framework having ability to define the game rules for events coming from your applications.",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/mendix/comments/1q2ccep/open_source_i_built_a_free_gamification_module_xp",
+    "name": "[Open Source] I built a free Gamification Module (XP, Levels  - Reddit",
+    "snippet": "[Open Source] I built a free Gamification Module (XP, Levels, Badges) so no one have to rebuild it every time. Hi everyone,. I have always ...\n[Open Source] I built a free Gamification Module (XP, Levels, Badges) so no one have to rebuild it every time. ; XP & Leveling: You call a ...",
+    "host_name": "www.reddit.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://trophy.so/blog/gamification-ui-libraries",
+    "name": "The Best Gamification UI Libraries (2026) - Trophy",
+    "snippet": "Trophy UI is the only one that ships all four (streaks, achievements, leaderboards, points) in a coherent design language, which matters if your ...",
+    "host_name": "trophy.so",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://marketplace.mendix.com/link/component/252933/Homaysa/Gamification-Engine-(XP,-Levels,-Badges)",
+    "name": "Gamification Engine (XP, Levels, Badges) - Mendix Marketplace",
+    "snippet": "A lightweight, open source, modular gamification engine designed to boost user engagement in any Mendix application. Built with scalability in mind, ...",
+    "host_name": "marketplace.mendix.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://yukaichou.com/gamification-study/badge-gamification-guide",
+    "name": "Badge Gamification: Why Most Achievement Badges Fail",
+    "snippet": "Badges are one of the most overused and misunderstood tools in gamification. That does not mean badge systems are useless.\nMost badge gamification fails because badges reward the wrong moment. The 5 design rules that turn forgettable badges into status symbols ...",
+    "host_name": "yukaichou.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://badgeos.org/the-psychology-of-gamification-and-learning-why-points-badges-motivate-users",
+    "name": "The Psychology of Gamification: How Points & Badges Keep Users",
+    "snippet": "The streak system encourages daily learning, while XP gives visible progress. Badges mark important milestones like completing a skill tree.\nBadgeOS can certainly give you the tools to create meaningful rewards that celebrate progress and spark engagement. Build streak systems, tiered ...",
+    "host_name": "badgeos.org",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.producthunt.com/products/trophy-1-0",
+    "name": "Trophy 1.0: Developer APIs for gamification - Product Hunt",
+    "snippet": "Ship gamification fast with flexible APIs for achievements, streaks, points, and leaderboards. Configure features without coding, automate personalized ...\nShip gamification fast with flexible APIs for achievements, streaks, points, and leaderboards. Configure features without coding, automate personalized email ...",
+    "host_name": "www.producthunt.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://sa-liberty.medium.com/the-31-core-gamification-techniques-part-1-progress-achievement-mechanics-d81229732f07",
+    "name": "The 31 Core Gamification Techniques (Part 1: Progress",
+    "snippet": "Unlike binary achievements or level systems, XP provides granular feedback that makes even small actions feel worthwhile. The steady ...\nProgress & Achievement Mechanics · 1. Progress Bars · 2. Experience Points (XP) · 3. Levels/Rank Progression · 4. Achievements/Badges · 5.",
+    "host_name": "sa-liberty.medium.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

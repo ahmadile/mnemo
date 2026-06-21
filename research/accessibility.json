@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://www.w3.org/TR/WCAG21",
+    "name": "Web Content Accessibility Guidelines (WCAG) 2.1 - W3C",
+    "snippet": "Web Content Accessibility Guidelines (WCAG) 2.1 covers a wide range of recommendations for making web content more accessible.",
+    "host_name": "www.w3.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.inclusiveweb.co/accessibility-resources/digital-accessibility-in-education-and-wcag-compliance",
+    "name": "Digital Accessibility In Education And WCAG Compliance",
+    "snippet": "If a student cannot read a PDF with a screen reader, cannot navigate a portal with a keyboard, or cannot understand a video without captions, ...",
+    "host_name": "www.inclusiveweb.co",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://help.element451.com/en/articles/11841002-accessibility",
+    "name": "Accessibility | The Element451 Help Center",
+    "snippet": "Element451 currently supports or partially supports all WCAG 2.1 Level A and Level AA criteria. A limited number of criteria are partially met, ...",
+    "host_name": "help.element451.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://community.articulate.com/discussions/discuss/storyline-360-not-compliant-with-wcag-2-1-aa-accessibility-guidelines/829728/replies/1207159",
+    "name": "Storyline 360 not compliant with WCAG 2.1 AA accessibility guidelines",
+    "snippet": "I see that Articulate claims on this page that \"Storyline 360 supports WCAG 2.1 Level AA, including screen readers, keyboard navigation, visible focus ...",
+    "host_name": "community.articulate.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://tophat.com/company/legal/accessibility-top-hat",
+    "name": "Improve Accessible Education: WCAG 2.1 AA Platform | Top Hat",
+    "snippet": "Let students learn on a platform that supports keyboard navigation and is designed to work with standard screen readers and magnification tools. 2.",
+    "host_name": "tophat.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.echalk.com/wcag-guidelines",
+    "name": "What are WCAG 2.0 Guidelines for Website Accessibility? - eChalk",
+    "snippet": "Operable for users accessing the site in different ways, including mouse, touch screen, keyboard navigation, voice navigation and other assistive technologies.",
+    "host_name": "www.echalk.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.libraryaccessibility.org/sites/libraryaccessibility.org/files/2022-05/LAA%20Report%20%28Apr%202022%29%20-%20O%27Reilly%20eBooks%20Platform.pdf",
+    "name": "[PDF] High-Level Accessibility Evaluation (WCAG 2.1)",
+    "snippet": "Use of Color & Navigation - The biggest issue with the current system is keyboard focus. Keyboard focus is primarily conveyed with changes in color, ...",
+    "host_name": "www.libraryaccessibility.org",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://artisanlearning.com/resources/elearning-accessibility-fixes",
+    "name": "WCAG Guidelines for Accessible E-Learning",
+    "snippet": "She has a particular focus on screen reader behavior, keyboard navigation, and the kind of accessibility issues that only show up when someone actually tries to ...",
+    "host_name": "artisanlearning.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

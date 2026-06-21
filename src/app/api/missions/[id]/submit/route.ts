@@ -96,9 +96,23 @@ ${code}
     })
 
     if (evaluation.passed && mission.status !== 'completed') {
+      // Schedule first review using FSRS (spaced repetition)
+      // First completion = rating "good" (default scheduling)
+      const { scheduleReview } = await import('@/lib/spaced-repetition')
+      const reviewSchedule = scheduleReview({
+        rating: 'good',
+        fsrsStateJson: '{}',
+      })
+
       await db.mission.update({
         where: { id },
-        data: { status: 'completed' },
+        data: {
+          status: 'completed',
+          nextReviewAt: reviewSchedule.nextReviewAt,
+          fsrsState: reviewSchedule.fsrsStateJson,
+          reviewCount: 1,
+          lastReviewAt: new Date(),
+        },
       })
 
       const updatedCurriculum = await db.curriculum.update({

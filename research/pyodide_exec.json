@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://github.com/pyodide/pyodide/issues/869",
+    "name": "Invoke pyodide from python / sandboxing · Issue #869 - GitHub",
+    "snippet": "I'd like to be able to run pyodide browser-side to write a program. And then when I'm done, I can deploy the python program to a server, ideally using the same ...",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/pyodide/pyodide/issues/959",
+    "name": "Question: How to sandboxise pyodide . · Issue #959 - GitHub",
+    "snippet": "Pyodide comes sandboxed. Pyodide runs in the browser. The browser already sandboxes each browser tab running inside of it. So yeah, just do ...",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://pyodide.org/en/stable/usage/quickstart.html",
+    "name": "Getting started — Version 314.0.0 - Pyodide",
+    "snippet": "Try Pyodide in a REPL directly in your browser (no installation needed). Setup There is a complete example that you can copy & paste into an html file below.",
+    "host_name": "pyodide.org",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/judge0/judge0",
+    "name": "Judge0 - GitHub",
+    "snippet": "Judge0 is an open-source online code execution system that enables the robust, fast, scalable, and sandboxed execution of AI-generated code, with support for ...",
+    "host_name": "github.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://discuss.openedx.org/t/sandboxing-instructor-code-with-webassembly-instead-of-codejail/10031",
+    "name": "Sandboxing Instructor Code with WebAssembly (instead of codejail)",
+    "snippet": "All executing through a WebAssembly sandbox. All code execution happens on the server-side–there is no wasm code being sent to the browser. Just ...",
+    "host_name": "discuss.openedx.org",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://news.ycombinator.com/item?id=43718268",
+    "name": "So their method of sandboxing Python code is to spin up a JS",
+    "snippet": "So their method of sandboxing Python code is to spin up a JS runtime (deno), run Pyodide on it, and then run the Python code in Pyodide.",
+    "host_name": "news.ycombinator.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

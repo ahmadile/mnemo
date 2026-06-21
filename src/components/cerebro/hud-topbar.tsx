@@ -59,6 +59,7 @@ export function HudTopbar() {
     'agent-chat': 'CONVERSATION',
     'virtual-world': 'MONDE VIRTUEL 2D',
     missions: 'MISSIONS',
+    reviews: 'RÉVISIONS',
     achievements: 'TROPHÉES',
     settings: 'RÉGLAGES',
   }
@@ -71,6 +72,7 @@ export function HudTopbar() {
     'agent-chat': 'Chat mémoire',
     'virtual-world': 'Simulation RPG',
     missions: 'Toutes vos missions',
+    reviews: 'Spaced repetition (FSRS)',
     achievements: 'Badges & succès',
     settings: 'Profil & configuration',
   }

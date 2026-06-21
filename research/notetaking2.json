@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://www.reddit.com/r/selfhosted/comments/1hruk49/which_notetaking_app_do_you_recommend_appflowy",
+    "name": "Which Note-Taking App Do You Recommend: Appflowy, Affine, or",
+    "snippet": "I tried Appflowy and. Logseq with Syncthing was the best for me. There's a learning curve but it is excellent for planning & journaling and the ...",
+    "host_name": "www.reddit.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docmost.com/blog/appflowy-alternatives",
+    "name": "Best 5 AppFlowy Alternatives - Docmost",
+    "snippet": "AppFlowy emerged in November 2021 as an ambitious open-source alternative to Notion, quickly gaining traction with over 30,000 GitHub stars ...",
+    "host_name": "docmost.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://news.ycombinator.com/item?id=36506472",
+    "name": "It seems like there's a lot of recent interest and effort in open-source",
+    "snippet": "AppFlowy (https://github.com/AppFlowy-IO/AppFlowy) comes to mind; local-first file storage in a platform-agnostic format. local-first file storage, where ...",
+    "host_name": "news.ycombinator.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://ednico.medium.com/logseq-the-note-taking-app-c0bae582f845?source=---------3----------------------------",
+    "name": "Logseq — The Note Taking Tool - Ed Nico - Medium",
+    "snippet": "Logseq is local first (you are in control of your notes) with notes being saved in plain text files in both Markdown and Org Mode formats ...",
+    "host_name": "ednico.medium.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://discuss.logseq.com/t/what-is-logseqs-business-model/389?page=2",
+    "name": "What is Logseq's business model? - Page 2 - FAQ",
+    "snippet": "is a free, copyleft license for software and other kinds of works, Logseq's current advantage is open source, user control, plain text, and ...",
+    "host_name": "discuss.logseq.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/tehtbl/awesome-note-taking",
+    "name": "tehtbl/awesome-note-taking: A curated list of 100+  - GitHub",
+    "snippet": "AppFlowy - Open source alternative to Notion. Supports macOS, Windows, Linux, iOS, and Android. Logseq - Local-first, non-linear, outliner notebook for ...",
+    "host_name": "github.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://community.obsidian.md",
+    "name": "Obsidian Community",
+    "snippet": "Convert your data to Markdown files you can use in Obsidian. Works with Apple Notes, OneNote, Evernote, Notion, Google Keep, and many other formats ...\nConvert your data to Markdown files you can use in Obsidian. Works with Apple Notes, OneNote, Evernote, Notion, Google Keep, and many other formats.",
+    "host_name": "community.obsidian.md",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/ObsidianMD/comments/17icr2l/send_data_to_obsidian_from_other_apps",
+    "name": "Send data to Obsidian from other apps : r/ObsidianMD - Reddit",
+    "snippet": "I was wondering if it is possible to send my notes from other apps to Obsidian via API? I've read the documentation but it points me to Plugins API.",
+    "host_name": "www.reddit.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.obsidianstats.com/plugins/obsidian-markdown-export-plugin",
+    "name": "Obsidian markdown export – Obsidian Plugin - Obsidian Stats",
+    "snippet": "The Obsidian markdown export plugin enables users to export their notes, including images and embedded content, into markdown or HTML formats with a single ...",
+    "host_name": "www.obsidianstats.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/coddingtonbear/obsidian-local-rest-api",
+    "name": "GitHub - coddingtonbear/obsidian-local-rest-api",
+    "snippet": "Local REST API with MCP ... Give your scripts, browser extensions, and AI agents a direct line into your Obsidian vault via a secure, authenticated REST API.",
+    "host_name": "github.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/workings/first-look-export-markdown-with-embeds-plugin-for-obsidian-24343e186cb2",
+    "name": "First Look: 'Export Markdown with Embeds' Plugin for Obsidian",
+    "snippet": "Export Markdown with Embeds parses a group of notes and intelligently imports all linked documents compiling a single Markdown file. The plugin ...",
+    "host_name": "medium.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=AgXa03ZxJ88",
+    "name": "How To Create Your Own Obsidian Plugin - Step By Step - YouTube",
+    "snippet": "Obsidian is a powerful note taking app. And it's actually possible to extend the features of Obsidian by writing your own plugins.",
+    "host_name": "www.youtube.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://shindakun.dev/posts/obsidian-markdown-export-plugin",
+    "name": "obsidian-markdown-export-plugin - shindakun dot dev",
+    "snippet": "The cleverly named obsidian-markdown-export-plugin which after a feature request supports out of the vault exports with attachments no less!",
+    "host_name": "shindakun.dev",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://forum.obsidian.md/t/option-to-store-user-written-plugins-in-vault/651",
+    "name": "Option to store user-written plugins in vault - Obsidian Forum",
+    "snippet": "I'm not sure what the plugin API will look like, but please consider letting users author and store plugins in their personal vault.",
+    "host_name": "forum.obsidian.md",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

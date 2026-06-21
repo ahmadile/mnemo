@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://selleo.com/blog/open-source-lms-comparison",
+    "name": "Open Source LMS Comparison 2026 - Selleo",
+    "snippet": "Not all LMS are created equal. This article will give you a detailed comparison of LMS like Moodle, Canvas and OpenEdX.",
+    "host_name": "selleo.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/elearning/comments/1egkxil/opensource_lms_software",
+    "name": "Open-Source LMS Software : r/elearning - Reddit",
+    "snippet": "Moodle is the most widely used open-source LMS thanks to its plugins, flexibility, and community, though the interface can feel dated. If you ...",
+    "host_name": "www.reddit.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://fulcrum.rocks/blog/how-to-choose-lms-between-moodle-canvas-openedx",
+    "name": "Moodle vs Canvas vs Open edX: What is the Best LMS - Fulcrum",
+    "snippet": "All the functionality of Open edX is completely free, while Moodle and Canvas offer several paid products in addition to their open source ...",
+    "host_name": "fulcrum.rocks",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=yg6Kwy77J5k",
+    "name": "Moodle vs. Open edX: Choosing the Best LMS for Your  - YouTube",
+    "snippet": "Are you an online course creator searching for the ideal Learning Management System (LMS)? In this video, we dive into a detailed comparison ...",
+    "host_name": "www.youtube.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://moodle.org/mod/forum/discuss.php?d=364356",
+    "name": "Moodle V/s OpenEdx",
+    "snippet": "If your focus is research Open edX is better. If your focus is teaching/learning Moodle suffices. Moodle is a LMS whereas Open edX is CMS (Course Management ...",
+    "host_name": "moodle.org",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.quora.com/How-does-OpenEDX-compare-to-Moodle-and-Canvas",
+    "name": "How does OpenEDX compare to Moodle and Canvas? - Quora",
+    "snippet": "Personally, I like the UI on OpenEDX versus the other two. It is much more modern and appears to be intuitive for building a class.",
+    "host_name": "www.quora.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/selleo/open-source-lms-comparison-moodle-vs-openedx-vs-canvas-lms-b50e8a227cdd",
+    "name": "Open Source LMS Comparison | Moodle Vs OpenEdX Vs Canvas LMS",
+    "snippet": "Open edX encourages active learning which is a modular approach to learning through interaction. This approach uses sequences, videos and ...",
+    "host_name": "medium.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://openedx.org/blog/moodle-versus-the-open-edx-platform-9-key-differences-in-elearning-platforms",
+    "name": "Moodle versus the Open edX Platform: 9 Key Differences in",
+    "snippet": "Discover the differences between Moodle and Open edX, two eLearning platforms. Choose the one that suits your organization's needs.",
+    "host_name": "openedx.org",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

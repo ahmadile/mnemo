@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://nextjs.org/docs/app/guides/package-bundling",
+    "name": "Guides: Package Bundling - Next.js",
+    "snippet": "Next.js automatically optimizes bundles by code splitting, tree-shaking, and other techniques. This guide will walk you through how to use each ...\nNext.js automatically optimizes bundles by code splitting, tree-shaking, and other techniques. However, there are some cases where you may need ...",
+    "host_name": "nextjs.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.linkedin.com/posts/vipul-maurya_nextjs-nextjs16-reactjs-activity-7396409752592769024-53DZ",
+    "name": "How to fix large bundle size in Next.js 16 apps - LinkedIn",
+    "snippet": "1. Measure first (Lighthouse, Next build analyzer) 2. Dynamic imports for route and component-level code-splitting 3. Remove heavy dependencies ...\n... code-splitting 3. Remove heavy dependencies and unused libraries 4. Optimize images with next/image and modern formats 5. Use CDN caching ...",
+    "host_name": "www.linkedin.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/nextjs/comments/1hmqu8q/any_useful_nextjs_library_to_improve_performance",
+    "name": "Any useful Next.js library to improve performance, bundle  - Reddit",
+    "snippet": "I think, it depends on what you are trying to optimize exactly, the best tool I discovered recently is react-scan for debugging and spotting performance issues.\nAny useful Next.js library to improve performance, bundle size or anything significant? Looked at some awesome lists, but I couldn't find ...",
+    "host_name": "www.reddit.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dev.to/maurya-sachin/reducing-javascript-bundle-size-in-nextjs-practical-guide-for-faster-apps-h0",
+    "name": "Reducing JavaScript Bundle Size in Next.js - DEV Community",
+    "snippet": "1. Use Dynamic Imports · 2. Tree Shake Your Code · 3. Bundle Analyzer · 4. Remove Unused Dependencies · 5. Optimize Images and Fonts · 6. Code ...\nSplit very large pages into smaller ones. Move rarely used components to dynamically loaded chunks. Key Takeaways. Analyze → Optimize → Monitor.",
+    "host_name": "dev.to",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.aniq-ui.com/en/blog/performance-optimization-nextjs",
+    "name": "Next.js Performance Optimization: Practical Guide to Speed Up Your",
+    "snippet": "Learn how to speed up Next.js apps with image optimization, code splitting, static generation, font loading, and reducing bundle size.",
+    "host_name": "www.aniq-ui.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.digitalapplied.com/blog/nextjs-16-performance-server-components-guide",
+    "name": "Next.js 16 Performance: Server Components Guide - Digital Applied",
+    "snippet": "Next.js 16 Server Components reduce client JavaScript by up to 70%. Performance guide covering RSC patterns, streaming, Turbopack, and bundle optimization.",
+    "host_name": "www.digitalapplied.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.catchmetrics.io/blog/optimizing-nextjs-performance-bundles-lazy-loading-and-images",
+    "name": "Optimizing Next.js Performance: Bundles, Lazy Loading, and Images",
+    "snippet": "... code splitting and lazy loading yield smaller initial bundles and faster Time to Interactive. Optimize Images with next/image. Images often ...",
+    "host_name": "www.catchmetrics.io",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/vercel/next.js/discussions/19065",
+    "name": "Optimize images during next build #19065 - GitHub",
+    "snippet": "Instead of optimizing images at build time, Next.js optimizes images on-demand, as users request them. Unlike static site generators and static-only solutions, ...",
+    "host_name": "github.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]

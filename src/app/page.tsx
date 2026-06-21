@@ -9,6 +9,7 @@ import { AgentsView } from '@/components/cerebro/agents-view'
 import { AgentChatView } from '@/components/cerebro/agent-chat-view'
 import { VirtualWorldView } from '@/components/cerebro/virtual-world-view'
 import { MissionsView } from '@/components/cerebro/missions-view'
+import { ReviewsView } from '@/components/cerebro/reviews-view'
 import { AchievementsView } from '@/components/cerebro/achievements-view'
 import { SettingsView } from '@/components/cerebro/settings-view'
 import { HudSidebar } from '@/components/cerebro/hud-sidebar'
@@ -45,6 +46,7 @@ export default function Home() {
             {view === 'agent-chat' && <AgentChatView />}
             {view === 'virtual-world' && <VirtualWorldView />}
             {view === 'missions' && <MissionsView />}
+            {view === 'reviews' && <ReviewsView />}
             {view === 'achievements' && <AchievementsView />}
             {view === 'settings' && <SettingsView />}
           </div>

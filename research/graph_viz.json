@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://www.reddit.com/r/javascript/comments/1k18g08/askjs_graph_library_similar_to_obsidian",
+    "name": "[AskJS] Graph library similar to Obsidian : r/javascript - Reddit",
+    "snippet": "Hi. Just wanted to ask if anyone had a change to work with some library that is similar to what Obsidian have under their graph.",
+    "host_name": "www.reddit.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://infranodus.com/use-case/visualize-knowledge-graphs-pkm",
+    "name": "Obsidian Knowledge Graph: AI-Powered Visualization & Analysis",
+    "snippet": "Build and visualize your Obsidian knowledge graph with AI-powered insights. Advanced graph view plugin for personal knowledge management with text network ...",
+    "host_name": "infranodus.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://neo4j.com/blog/graph-visualization/neo4j-graph-visualization-tools",
+    "name": "15 best graph visualization tools for your Neo4j graph database",
+    "snippet": "react-force-graph is an open source JavaScript library for embedding graph visualizations in web applications. Built with React, it ...",
+    "host_name": "neo4j.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/@lennart.dde/my-research-notes-are-a-knowledge-graph-and-python-is-the-glue-that-holds-it-together-6f18f837bc70",
+    "name": "My Research Notes Are a Knowledge Graph — And Python Is the",
+    "snippet": "Why Not Just Use Obsidian Plugins? Good question. There are plugins like Obsidian Graph View, Juggl, and Neo4j Exporter, which do similar things ...",
+    "host_name": "medium.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/AppFlowy-IO/AppFlowy/discussions/171",
+    "name": "Obsidian like Graph view #171 - GitHub",
+    "snippet": "Obsidian's graph view is a helpful way of organizing ideas and making connections between them. Notion's hierarchical views are too rigid to support abstract ...",
+    "host_name": "github.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=5x5ua7LecOI",
+    "name": "How I use GRAPH VIEW in Obsidian - YouTube",
+    "snippet": "Obsidian graph view! I have 4 use cases for graph view in Obsidian for my Zettlekasten workflow. Let's go through local graph view and ...",
+    "host_name": "www.youtube.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://forum.obsidian.md/t/share-the-graph-view-and-notes-as-html-page-for-free-with-obsidian2cosma/51070",
+    "name": "Share the graph view and notes as HTML page for free with",
+    "snippet": "Obsidian2cosma Cosma is an open source app which can generate such a graph view, from a directory of text files written in Markdown, in a single HTML file ...",
+    "host_name": "forum.obsidian.md",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://cambridge-intelligence.com/blog/react-graph-visualization-library",
+    "name": "A guide to React graph visualization - Cambridge Intelligence",
+    "snippet": "Open source options. Cytoscape.js is an open source graph library with the core features you'd expect from a graph visualization library.",
+    "host_name": "cambridge-intelligence.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  }
+]
