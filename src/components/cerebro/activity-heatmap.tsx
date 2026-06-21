@@ -22,7 +22,6 @@ export function ActivityHeatmap({ data, streak }: ActivityHeatmapProps) {
   const { resolvedTheme } = useTheme()
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 
