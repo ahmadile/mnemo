@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import ZAI from 'z-ai-web-dev-sdk'
+import { generateChatCompletion } from '@/lib/ai'
 
 // POST /api/agents/[id]/chat - send message to agent
 // Body: { message: string }
@@ -68,13 +68,7 @@ comme si tu étais lui-même dans le futur, qui se souvient de ce qu'il a appris
       data: { agentId: id, role: 'user', content: message },
     })
 
-    const zai = await ZAI.create()
-    const completion = await zai.chat.completions.create({
-      messages: llmMessages,
-      thinking: { type: 'disabled' },
-    })
-
-    const agentResponse = completion.choices[0]?.message?.content || '...'
+    const agentResponse = await generateChatCompletion(llmMessages)
 
     await db.agentConversation.create({
       data: { agentId: id, role: 'agent', content: agentResponse },

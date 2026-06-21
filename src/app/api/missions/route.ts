@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import ZAI from 'z-ai-web-dev-sdk'
+import { generateChatCompletion } from '@/lib/ai'
 
 // POST /api/missions - generate a new mission from course content
 // Body: { curriculumId: string, courseContent: string, courseLink?: string }
@@ -61,16 +61,10 @@ ${courseContent}
 
 Génère une mission de codage ${language} qui teste exactement les notions vues dans ce cours.`
 
-    const zai = await ZAI.create()
-    const completion = await zai.chat.completions.create({
-      messages: [
-        { role: 'assistant', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      thinking: { type: 'disabled' },
-    })
-
-    let rawResponse = completion.choices[0]?.message?.content || ''
+    let rawResponse = await generateChatCompletion([
+      { role: 'assistant', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ], { jsonMode: true })
     rawResponse = rawResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
 
     let missionData

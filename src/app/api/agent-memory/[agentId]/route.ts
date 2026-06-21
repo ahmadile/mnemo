@@ -103,21 +103,17 @@ Utilise-le pour maintenir la continuité et te souvenir des discussions précéd
         messages: llmMessages,
         maxTokens: 500,
         temperature: 0.7,
-      })
+      } as any)
       agentResponse = result.text || '...'
     } catch (e: any) {
-      console.error('LLM call failed, falling back to z-ai-web-dev-sdk:', e)
-      // Fallback to z-ai-web-dev-sdk
-      const ZAI = (await import('z-ai-web-dev-sdk')).default
-      const zai = await ZAI.create()
-      const completion = await zai.chat.completions.create({
-        messages: llmMessages.map((m) => ({
-          role: m.role === 'system' ? 'assistant' : m.role,
-          content: m.content,
-        })) as any,
-        thinking: { type: 'disabled' },
-      })
-      agentResponse = completion.choices[0]?.message?.content || '...'
+      console.error('LLM call failed, falling back to generateChatCompletion:', e)
+      try {
+        const { generateChatCompletion } = await import('@/lib/ai')
+        agentResponse = await generateChatCompletion(llmMessages)
+      } catch (err: any) {
+        console.error('Fallback generateChatCompletion also failed:', err)
+        agentResponse = '...'
+      }
     }
 
     // Save agent response to DB (persistent memory)

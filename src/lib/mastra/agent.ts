@@ -1,41 +1,48 @@
 // Mastra agent-mémoire configuration for Mnemo
-// Uses Z.ai (GLM-4) as the LLM provider via OpenAI-compatible API
-// Provides persistent memory per agent + per user
+// Uses custom provider or fallback OpenAI-compatible API based on settings
 
 import { Mastra } from '@mastra/core'
-import { openai } from '@ai-sdk/openai'
+import { createOpenAI } from '@ai-sdk/openai'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
+import fs from 'fs'
+import path from 'path'
 
-// Z.ai provider (OpenAI-compatible endpoint)
-// The z-ai-web-dev-sdk is used internally, but for Mastra we need an OpenAI-compatible client
-// We create a custom provider that points to Z.ai's API
-const zaiProvider = createOpenAICompatible({
-  name: 'zai',
-  baseURL: 'https://internal-api.z.ai/v1',
-  apiKey: process.env.ZAI_API_KEY || 'zai-default',
-})
-
-// Fallback: use standard OpenAI provider if ZAI_API_KEY is set
+// Fallback: use dynamic configuration from .z-ai-config
 function getModel() {
-  // Try Z.ai first (internal API)
+  let config: any = {}
   try {
-    return zaiProvider('glm-4.6')
+    const filePath = path.join(process.cwd(), '.z-ai-config')
+    if (fs.existsSync(filePath)) {
+      config = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+    }
   } catch (e) {
-    // Fallback to OpenAI if configured
-    return openai('gpt-4o-mini')
+    console.error('Failed to read config in mastra agent:', e)
   }
+
+  const provider = config.provider || 'zai'
+  const apiKey = config.apiKey || process.env.ZAI_API_KEY || 'zai-default'
+  const baseUrl = config.baseUrl || 'https://internal-api.z.ai/v1'
+  const modelName = config.model || 'glm-4.6'
+
+  if (provider === 'openai') {
+    const openaiInstance = createOpenAI({
+      apiKey: apiKey,
+    })
+    return openaiInstance(modelName || 'gpt-4o-mini')
+  }
+
+  const customProvider = createOpenAICompatible({
+    name: provider,
+    baseURL: baseUrl,
+    apiKey: apiKey,
+  })
+  return customProvider(modelName)
 }
 
 // Create the Mastra instance with memory storage
 // In production, use Postgres or LibSQL for persistent memory
 // In dev, use in-memory storage (resets on restart)
-export const mastra = new Mastra({
-  // Memory configuration
-  // Mastra stores conversation history per thread (agentId + userId)
-  options: {
-    // Default memory: in-memory for dev, can be swapped for production
-  },
-})
+export const mastra = new Mastra({})
 
 // Helper: create or retrieve an agent-mémoire for a given curriculum
 export function createMemoryAgent(opts: {

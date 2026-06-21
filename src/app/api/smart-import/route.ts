@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import ZAI from 'z-ai-web-dev-sdk'
+import { extractPageContent } from '@/lib/ai'
 
 // POST /api/smart-import
 // Body: { url: string }
@@ -80,8 +80,6 @@ export async function POST(req: NextRequest) {
     let content = ''
     let warning: string | undefined
 
-    const zai = await ZAI.create()
-
     if (type === 'youtube') {
       // YouTube: try to get transcript
       const videoId = extractYouTubeId(url)
@@ -96,12 +94,12 @@ export async function POST(req: NextRequest) {
 
       for (const sourceUrl of sources) {
         try {
-          const result = await zai.functions.invoke('page_reader', { url: sourceUrl })
-          if (result?.data?.html) {
-            const text = cleanHtml(result.data.html)
+          const result = await extractPageContent(sourceUrl)
+          if (result?.html) {
+            const text = cleanHtml(result.html)
             if (text.length > 200) {
               content = text.slice(0, 8000)
-              title = result.data.title || `YouTube: ${videoId}`
+              title = result.title || `YouTube: ${videoId}`
               break
             }
           }
@@ -119,18 +117,18 @@ export async function POST(req: NextRequest) {
         .replace('/blob/', '/')
 
       try {
-        const result = await zai.functions.invoke('page_reader', { url: readmeUrl })
-        if (result?.data?.html) {
-          content = cleanHtml(result.data.html).slice(0, 8000)
-          title = result.data.title || url.split('/').slice(-2).join('/')
+        const result = await extractPageContent(readmeUrl)
+        if (result?.html) {
+          content = cleanHtml(result.html).slice(0, 8000)
+          title = result.title || url.split('/').slice(-2).join('/')
         }
       } catch {
         // Fallback: try the original URL
         try {
-          const result = await zai.functions.invoke('page_reader', { url })
-          if (result?.data?.html) {
-            content = cleanHtml(result.data.html).slice(0, 8000)
-            title = result.data.title || 'GitHub'
+          const result = await extractPageContent(url)
+          if (result?.html) {
+            content = cleanHtml(result.html).slice(0, 8000)
+            title = result.title || 'GitHub'
           }
         } catch { /* continue */ }
       }
@@ -141,12 +139,12 @@ export async function POST(req: NextRequest) {
     } else {
       // DataCamp, article, unknown → page_reader
       try {
-        const result = await zai.functions.invoke('page_reader', { url })
-        if (result?.data?.html) {
-          const text = cleanHtml(result.data.html)
+        const result = await extractPageContent(url)
+        if (result?.html) {
+          const text = cleanHtml(result.html)
           if (text.length > 50) {
             content = text.slice(0, 8000)
-            title = result.data.title || url
+            title = result.title || url
           } else {
             warning = "Le contenu extrait est très court. La page nécessite peut-être une authentification (DataCamp) ou JavaScript."
           }

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useUI } from '@/store/ui'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -26,6 +27,52 @@ import { toast } from 'sonner'
 export function SettingsView() {
   const [resetting, setResetting] = useState(false)
   const [exporting, setExporting] = useState(false)
+  
+  const [provider, setProvider] = useState<'zai' | 'openai' | 'openrouter' | 'custom'>('zai')
+  const [apiKey, setApiKey] = useState('')
+  const [baseUrl, setBaseUrl] = useState('')
+  const [model, setModel] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/settings/ai')
+        const data = await res.json()
+        if (data.config) {
+          setProvider(data.config.provider)
+          setApiKey(data.config.apiKey)
+          setBaseUrl(data.config.baseUrl)
+          setModel(data.config.model)
+        }
+      } catch (e) {
+        console.error('Failed to load AI settings:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadSettings()
+  }, [])
+
+  async function handleSaveAISettings(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      const res = await fetch('/api/settings/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, apiKey, baseUrl, model }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success('Configuration de l\'intelligence artificielle sauvegardée')
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   async function handleReset() {
     if (!confirm('Êtes-vous sûr ? Cette action supprimera TOUS les cursus, missions, agents et conversations. Irréversible.')) {
@@ -121,30 +168,104 @@ export function SettingsView() {
           </div>
           <h2 className="font-bold">Intelligence artificielle</h2>
         </div>
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs text-zinc-500 uppercase tracking-wider">Provider</label>
-            <div className="mt-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-zinc-300">
-              Z.ai (z-ai-web-dev-sdk)
+        
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-zinc-400 py-4">
+            <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+            <span>Chargement des paramètres...</span>
+          </div>
+        ) : (
+          <form onSubmit={handleSaveAISettings} className="space-y-4">
+            <div>
+              <label className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">Provider</label>
+              <select
+                value={provider}
+                onChange={(e) => {
+                  const val = e.target.value as any
+                  setProvider(val)
+                  if (val === 'zai') {
+                    setBaseUrl('https://internal-api.z.ai/v1')
+                    setModel('glm-4.6')
+                  } else if (val === 'openai') {
+                    setBaseUrl('https://api.openai.com/v1')
+                    setModel('gpt-4o-mini')
+                  } else if (val === 'openrouter') {
+                    setBaseUrl('https://openrouter.ai/api/v1')
+                    setModel('google/gemini-2.5-flash')
+                  }
+                }}
+                className="mt-1 w-full px-3 py-2 rounded-lg bg-zinc-950 border border-white/10 text-sm text-zinc-200 focus:outline-none focus:border-purple-500 transition-colors"
+              >
+                <option value="zai">Z.ai (Par défaut)</option>
+                <option value="openai">OpenAI (Direct)</option>
+                <option value="openrouter">OpenRouter (Recommandé pour tester plusieurs modèles)</option>
+                <option value="custom">Custom (Compatible OpenAI)</option>
+              </select>
             </div>
-          </div>
-          <div>
-            <label className="text-xs text-zinc-500 uppercase tracking-wider">Fichier de configuration</label>
-            <div className="mt-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-zinc-300 font-mono">
-              .z-ai-config
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">Clé API</label>
+                <input
+                  type="password"
+                  placeholder="sk-..."
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="mt-1 w-full px-3 py-2 rounded-lg bg-zinc-950 border border-white/10 text-sm text-zinc-200 focus:outline-none focus:border-purple-500 transition-colors font-mono"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">Modèle</label>
+                <input
+                  type="text"
+                  placeholder="e.g. gpt-4o-mini, glm-4.6"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  className="mt-1 w-full px-3 py-2 rounded-lg bg-zinc-950 border border-white/10 text-sm text-zinc-200 focus:outline-none focus:border-purple-500 transition-colors font-mono"
+                  required
+                />
+              </div>
             </div>
-            <p className="text-[11px] text-zinc-500 mt-1.5">
-              Créez ce fichier à la racine du projet avec votre clé API Z.ai :
-              <code className="block mt-1 px-2 py-1 bg-zinc-950 rounded text-emerald-400">
-                {'{ "apiKey": "VOTRE_CLE" }'}
-              </code>
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-500 pt-2">
-            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-            <span>L'IA est utilisée pour : génération de missions, évaluation de code, chat avec agents</span>
-          </div>
-        </div>
+
+            {provider === 'custom' || provider === 'openrouter' ? (
+              <div>
+                <label className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">Base URL de l'API</label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={baseUrl}
+                  onChange={(e) => setBaseUrl(e.target.value)}
+                  className="mt-1 w-full px-3 py-2 rounded-lg bg-zinc-950 border border-white/10 text-sm text-zinc-200 focus:outline-none focus:border-purple-500 transition-colors font-mono"
+                  required
+                />
+              </div>
+            ) : null}
+
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                <span>Les paramètres sont sauvegardés localement dans .z-ai-config</span>
+              </div>
+              
+              <Button
+                type="submit"
+                disabled={saving}
+                className="bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/20"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sauvegarde...
+                  </>
+                ) : (
+                  'Sauvegarder les clés'
+                )}
+              </Button>
+            </div>
+          </form>
+        )}
       </Card>
 
       {/* DataCamp Extension */}

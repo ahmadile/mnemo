@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import ZAI from 'z-ai-web-dev-sdk'
+import { extractPageContent } from '@/lib/ai'
 
 // POST /api/youtube
 // Body: { url: string }
@@ -41,10 +41,9 @@ export async function POST(req: NextRequest) {
 
     for (const sourceUrl of sources) {
       try {
-        const zai = await ZAI.create()
-        const result = await zai.functions.invoke('page_reader', { url: sourceUrl })
-        if (result?.data?.html) {
-          const text = result.data.html
+        const result = await extractPageContent(sourceUrl)
+        if (result?.html) {
+          const text = result.html
             .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
             .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
             .replace(/<[^>]*>/g, ' ')
@@ -57,7 +56,7 @@ export async function POST(req: NextRequest) {
             .trim()
           if (text.length > 200) {
             transcriptText = text
-            videoTitle = result.data.title || ''
+            videoTitle = result.title || ''
             break
           }
         }

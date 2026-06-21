@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import ZAI from 'z-ai-web-dev-sdk'
+import { extractPageContent } from '@/lib/ai'
 
 // POST /api/extract-url
 // Body: { url: string }
@@ -16,11 +16,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const zai = await ZAI.create()
+    const result = await extractPageContent(url)
 
-    const result = await zai.functions.invoke('page_reader', { url })
-
-    if (!result?.data?.html) {
+    if (!result?.html) {
       return NextResponse.json(
         { error: 'Impossible de lire le contenu de cette page. Vérifiez que l\'URL est accessible.' },
         { status: 422 }
@@ -28,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Strip HTML tags to get clean text
-    const text = result.data.html
+    const text = result.html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<br\s*\/?>/gi, '\n')
@@ -46,10 +44,10 @@ export async function POST(req: NextRequest) {
       .trim()
 
     return NextResponse.json({
-      title: result.data.title || '',
-      url: result.data.url || url,
+      title: result.title || '',
+      url: result.url || url,
       content: text,
-      publishedTime: result.data.publishedTime || null,
+      publishedTime: null,
       contentLength: text.length,
     })
   } catch (e: any) {

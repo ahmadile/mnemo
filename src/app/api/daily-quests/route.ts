@@ -96,7 +96,16 @@ async function generateDailyQuests(today: Date) {
 
   const agents = curricula.filter((c) => c.agent).map((c) => c.agent!)
 
-  const questsToCreate = []
+  const questsToCreate: {
+    title: string
+    description: string
+    type: string
+    xpReward: number
+    status: string
+    missionId?: string
+    agentId?: string
+    questDate: Date
+  }[] = []
 
   // Quest 1: Review an old mission (spaced retrieval)
   if (allCompletedMissions.length > 0) {

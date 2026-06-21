@@ -52,3 +52,10 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# Doc assets, uploads and logs
+/download/
+/upload/
+/tool-results/
+/mini-services/
+/examples/
