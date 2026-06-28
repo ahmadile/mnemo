@@ -1,4 +1,4 @@
-// Mnemo DataCamp Bridge v1.3 — popup script
+// Mnemo DataCamp Bridge v1.3.1 — popup script
 // Fixes:
 //   - Language detection now scoped to course title only (no more false "SQL" from sidebar)
 //   - Chapter detection scoped to main content (no more "APPRENTISSAGE" from menu)
@@ -39,18 +39,26 @@ async function init() {
   const url = serverUrlInput.value.replace(/\/$/, '')
   const serverOk = await checkServer(url)
 
-  if (!serverOk) {
+  if (!serverOk.ok) {
     setStatus('error', 'Serveur Mnemo injoignable')
     notDatacampSection.style.display = 'block'
+    const isLocal = /localhost|127\.0\.0\.1/.test(url)
+    const localHints = `
+        • Mnemo n'est pas démarré (lancez <code style="color:#fbbf24;">npm run dev</code>)<br>
+        • Le port 3000 est déjà utilisé par une autre app`
+    const remoteHints = `
+        • L'URL doit commencer par <code style="color:#fbbf24;">https://</code> (ex. Vercel)<br>
+        • Rechargez l'extension dans <code style="color:#fbbf24;">chrome://extensions/</code> (v1.3.1+ requis pour Vercel)<br>
+        • Vérifiez que le déploiement Vercel est en ligne`
     notDatacampSection.innerHTML = `
       <div class="info" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3);">
         <strong style="color:#ef4444;">Serveur Mnemo injoignable</strong><br>
-        Vérifiez que Mnemo tourne sur <code style="color:#fbbf24;">${url}</code>.
+        Impossible de joindre <code style="color:#fbbf24;">${url}</code>.
+        ${serverOk.detail ? `<br><span style="color:#a1a1aa;font-size:10px;">${serverOk.detail}</span>` : ''}
         <br><br>
         <span style="color:#a1a1aa;">Causes possibles :</span><br>
-        • Mnemo n'est pas démarré (lancez <code style="color:#fbbf24;">bun run dev</code>)<br>
-        • Le fichier <code style="color:#fbbf24;">.z-ai-config</code> manque à la racine du projet<br>
-        • L'URL dans le champ ci-dessus est incorrecte
+        • L'URL dans le champ ci-dessus est incorrecte<br>
+        ${isLocal ? localHints : remoteHints}
       </div>
     `
     return
@@ -73,11 +81,24 @@ async function init() {
 }
 
 async function checkServer(url) {
+  if (!url || !/^https?:\/\//.test(url)) {
+    return { ok: false, detail: 'URL invalide (http:// ou https:// requis)' }
+  }
   try {
     const res = await fetch(`${url}/api/curricula`, { method: 'GET' })
-    return res.ok
+    if (res.ok) return { ok: true }
+    return { ok: false, detail: `Le serveur a répondu HTTP ${res.status}` }
   } catch (e) {
-    return false
+    const msg = e?.message || 'Erreur réseau'
+    const likelyPermission =
+      !/localhost|127\.0\.0\.1/.test(url) &&
+      (msg.includes('Failed to fetch') || msg.includes('NetworkError'))
+    return {
+      ok: false,
+      detail: likelyPermission
+        ? 'Chrome bloque peut-être la requête — mettez à jour l\'extension (v1.3.1+) et rechargez-la'
+        : msg,
+    }
   }
 }
 

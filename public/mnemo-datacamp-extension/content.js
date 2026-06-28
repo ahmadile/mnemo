@@ -3,7 +3,7 @@
 // In v1.2, the actual detection happens via chrome.scripting.executeScript
 // from the popup (more reliable than running on every page load)
 
-console.log('[Mnemo Bridge v1.2] Content script loaded on', window.location.href)
+console.log('[Mnemo Bridge v1.3.1] Content script loaded on', window.location.href)
 
 function injectBadge() {
   if (document.getElementById('mnemo-badge')) return

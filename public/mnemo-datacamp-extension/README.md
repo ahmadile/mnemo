@@ -1,6 +1,11 @@
-# Mnemo · DataCamp Bridge v1.2
+# Mnemo · DataCamp Bridge v1.3.1
 
 Extension Chrome qui capture vos cours DataCamp et les envoie à Mnemo pour générer automatiquement des missions de codage.
+
+## Nouveautés v1.3.1
+
+- **Support Vercel** : ajout de `https://*.vercel.app/*` dans les host_permissions (corrige « Serveur Mnemo injoignable » en production)
+- **Messages d'erreur** : hints distincts pour localhost vs déploiement distant (Vercel, Render, etc.)
 
 ## Nouveautés v1.2
 
@@ -21,7 +26,9 @@ Extension Chrome qui capture vos cours DataCamp et les envoie à Mnemo pour gén
 
 ## Utilisation
 
-1. Démarrez Mnemo en local (`bun run dev` → `http://localhost:3000`)
+1. Configurez l'URL Mnemo dans le popup :
+   - **Local** : `http://localhost:3000` (`npm run dev`)
+   - **Production** : `https://votre-app.vercel.app` (sans slash final)
 2. Naviguez sur `app.datacamp.com` (connectez-vous à votre compte)
 3. Un badge vert "Mnemo prêt" apparaît en bas à droite des pages DataCamp
 4. Cliquez sur l'icône Mnemo dans la barre d'extensions Chrome
@@ -45,9 +52,10 @@ Extension Chrome qui capture vos cours DataCamp et les envoie à Mnemo pour gén
 ## Dépannage
 
 ### "Serveur Mnemo injoignable"
-- Vérifiez que Mnemo tourne : `bun run dev` doit afficher `http://localhost:3000`
-- Vérifiez l'URL dans le champ "Serveur Mnemo" du popup
-- Si vous utilisez un port différent, modifiez le champ
+- **Vercel / production** : utilisez `https://...` (pas `http://`) et installez l'extension **v1.3.1+**
+- Rechargez l'extension dans `chrome://extensions/` après mise à jour
+- **Local** : vérifiez que Mnemo tourne (`npm run dev` → `http://localhost:3000`)
+- Vérifiez l'URL dans le champ "Serveur Mnemo" du popup (sans slash final)
 
 ### "Permission scripting manquante"
 - Vérifiez que le `manifest.json` contient `"scripting"` dans `permissions`
