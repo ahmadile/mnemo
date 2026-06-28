@@ -33,6 +33,8 @@ export function SettingsView() {
   const [apiKey, setApiKey] = useState('')
   const [baseUrl, setBaseUrl] = useState('')
   const [model, setModel] = useState('')
+  const [isValid, setIsValid] = useState<boolean | null>(null)
+  const [validationError, setValidationError] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -52,6 +54,10 @@ export function SettingsView() {
           setApiKey(data.config.apiKey)
           setBaseUrl(data.config.baseUrl)
           setModel(data.config.model)
+          if (data.config.isValid !== undefined) {
+            setIsValid(data.config.isValid)
+            setValidationError(data.config.validationError || '')
+          }
         }
       } catch (e) {
         console.error('Failed to load AI settings:', e)
@@ -74,7 +80,20 @@ export function SettingsView() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      toast.success('Configuration de l\'intelligence artificielle sauvegardée')
+
+      if (data.config) {
+        setIsValid(data.config.isValid ?? null)
+        setValidationError(data.config.validationError || '')
+        setBaseUrl(data.config.baseUrl) // Update with normalized URL
+      }
+
+      if (data.config?.isValid) {
+        toast.success('Configuration validée et sauvegardée avec succès !')
+      } else if (data.config?.isValid === false) {
+        toast.warning(`Configuration sauvegardée, mais le test de connexion a échoué : ${data.config.validationError}`)
+      } else {
+        toast.success('Configuration de l\'intelligence artificielle sauvegardée')
+      }
     } catch (e: any) {
       toast.error(e.message)
     } finally {
@@ -268,6 +287,31 @@ export function SettingsView() {
                 />
               </div>
             ) : null}
+
+            {isValid !== null && (
+              <div className={`p-4 rounded-lg border text-sm flex items-start gap-3 ${
+                isValid 
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' 
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+              }`}>
+                {isValid ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <div className="font-semibold">
+                    {isValid ? 'Clé API validée et opérationnelle' : 'Échec du test de connexion'}
+                  </div>
+                  <div className="text-xs text-white/70 mt-1 leading-relaxed">
+                    {isValid 
+                      ? 'Mnemo s\'est connecté avec succès à l\'API pour tester vos réglages.' 
+                      : `Erreur : ${validationError || 'Veuillez vérifier votre clé API, votre URL de base et votre modèle.'}`
+                    }
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center justify-between pt-2">
               <div className="flex items-center gap-2 text-xs text-zinc-500">

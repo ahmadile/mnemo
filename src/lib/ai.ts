@@ -7,6 +7,8 @@ export interface AIConfig {
   apiKey: string
   baseUrl: string
   model: string
+  isValid?: boolean
+  validationError?: string
 }
 
 const DEFAULT_CONFIG: AIConfig = {
@@ -28,6 +30,8 @@ export async function getAIConfig(): Promise<AIConfig> {
         apiKey: config.apiKey || 'zai-default',
         baseUrl: config.baseUrl || 'https://internal-api.z.ai/v1',
         model: config.model || 'glm-4.6',
+        isValid: config.isValid,
+        validationError: config.validationError,
       }
     }
   } catch (error) {
@@ -44,6 +48,8 @@ export async function getAIConfig(): Promise<AIConfig> {
       apiKey: config.apiKey || 'zai-default',
       baseUrl: config.baseUrl || 'https://internal-api.z.ai/v1',
       model: config.model || 'glm-4.6',
+      isValid: config.isValid,
+      validationError: config.validationError,
     }
   } catch (error) {
     // If file doesn't exist, use environment variables or default config
@@ -76,6 +82,66 @@ export async function saveAIConfig(config: AIConfig): Promise<void> {
     await fs.writeFile(filePath, JSON.stringify(config, null, 2), 'utf-8')
   } catch (error) {
     console.warn('Failed to save config to file (expected in read-only environments like Vercel):', error)
+  }
+}
+
+export async function testAIConfig(config: AIConfig): Promise<{ success: boolean; error?: string }> {
+  // Normalize Base URL first
+  let normalizedBaseUrl = config.baseUrl.trim()
+  if (normalizedBaseUrl.endsWith('/chat/completions')) {
+    normalizedBaseUrl = normalizedBaseUrl.slice(0, -'/chat/completions'.length)
+  } else if (normalizedBaseUrl.endsWith('/chat/completions/')) {
+    normalizedBaseUrl = normalizedBaseUrl.slice(0, -'/chat/completions/'.length)
+  }
+  if (normalizedBaseUrl.endsWith('/')) {
+    normalizedBaseUrl = normalizedBaseUrl.slice(0, -1)
+  }
+
+  const url = `${normalizedBaseUrl}/chat/completions`
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${config.apiKey}`,
+  }
+
+  const body: any = {
+    model: config.model || 'glm-4.6',
+    messages: [{ role: 'user', content: 'Ping' }],
+    max_tokens: 1,
+  }
+
+  if (config.provider === 'zai') {
+    headers['X-Z-AI-From'] = 'Z'
+    body.thinking = { type: 'disabled' }
+  }
+
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 seconds timeout
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (response.ok) {
+      return { success: true }
+    } else {
+      const errText = await response.text()
+      let errMsg = `Code ${response.status}`
+      try {
+        const errJson = JSON.parse(errText)
+        errMsg = errJson.error?.message || errJson.message || errMsg
+      } catch (_) {
+        if (errText) errMsg = errText.slice(0, 100)
+      }
+      return { success: false, error: errMsg }
+    }
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Erreur réseau ou timeout' }
   }
 }
 
