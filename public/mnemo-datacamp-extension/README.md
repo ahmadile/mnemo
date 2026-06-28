@@ -21,8 +21,13 @@ Extension Chrome qui capture vos cours DataCamp et les envoie à Mnemo pour gén
 2. Ouvrez `chrome://extensions/` dans Chrome
 3. Activez le **Mode développeur** (en haut à droite)
 4. Cliquez sur **Charger l'extension non empaquetée**
-5. Sélectionnez le dossier `mnemo-datacamp-extension/` décompressé
+5. Sélectionnez le dossier qui contient **`manifest.json` à la racine** (pas le dossier parent du ZIP)
+   - ✅ Bon : `...\mnemo-datacamp-extension\manifest.json`
+   - ❌ Mauvais : `...\mnemo-datacamp-extension (1)\` (sans manifest à la racine)
 6. L'icône Mnemo (vert avec "M") apparaît dans votre barre d'extensions
+
+> **Astuce** : si vous développez le projet Mnemo en local, chargez directement  
+> `mnemo/public/mnemo-datacamp-extension/` — c'est la version la plus à jour.
 
 ## Utilisation
 
@@ -50,6 +55,12 @@ Extension Chrome qui capture vos cours DataCamp et les envoie à Mnemo pour gén
 - **Missions générées** : le contenu extrait est envoyé à l'IA qui génère une mission scénarisée style GTA
 
 ## Dépannage
+
+### "Fichier manifeste absent ou illisible"
+- Vous avez sélectionné le **mauvais dossier** après décompression du ZIP
+- Chrome doit pointer vers le dossier où `manifest.json` est **directement visible** (pas un niveau au-dessus)
+- Exemple correct : `Downloads\mnemo-datacamp-extension\` (avec manifest.json dedans)
+- Exemple incorrect : `Downloads\mnemo-datacamp-extension (1)\` (dossier parent vide)
 
 ### "Serveur Mnemo injoignable"
 - **Vercel / production** : utilisez `https://...` (pas `http://`) et installez l'extension **v1.3.1+**
