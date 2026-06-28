@@ -78,19 +78,28 @@ export function VirtualWorldView() {
 
   async function refresh() {
     setLoading(true)
-    try {
-      const res = await fetch('/api/virtual-world')
-      if (!res.ok) {
-        throw new Error(`API error: ${res.status} ${res.statusText}`)
+    const maxRetries = 2
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const res = await fetch('/api/virtual-world')
+        if (!res.ok) {
+          throw new Error(`API error: ${res.status} ${res.statusText}`)
+        }
+        const data = await res.json()
+        console.log('Virtual World NPCs loaded:', data.npcs)
+        setNpcs(data.npcs || [])
+        setLoading(false)
+        return
+      } catch (e: any) {
+        if (attempt < maxRetries) {
+          console.warn(`Virtual World fetch attempt ${attempt + 1} failed, retrying...`, e.message)
+          await new Promise(r => setTimeout(r, 1500))
+        } else {
+          console.error('Virtual World fetch error:', e)
+          toast.error('Erreur lors du chargement du monde: ' + e.message)
+          setLoading(false)
+        }
       }
-      const data = await res.json()
-      console.log('Virtual World NPCs loaded:', data.npcs)
-      setNpcs(data.npcs || [])
-    } catch (e: any) {
-      console.error('Virtual World fetch error:', e)
-      toast.error('Erreur lors du chargement du monde: ' + e.message)
-    } finally {
-      setLoading(false)
     }
   }
 
