@@ -69,6 +69,7 @@ export function VirtualWorldView() {
   const [chatInput, setChatInput] = useState('')
   const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'agent'; content: string }[]>([])
   const [chatLoading, setChatLoading] = useState(false)
+  const [gameReady, setGameReady] = useState(false)
 
   // Load NPCs
   useEffect(() => {
@@ -79,10 +80,15 @@ export function VirtualWorldView() {
     setLoading(true)
     try {
       const res = await fetch('/api/virtual-world')
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status} ${res.statusText}`)
+      }
       const data = await res.json()
+      console.log('Virtual World NPCs loaded:', data.npcs)
       setNpcs(data.npcs || [])
     } catch (e: any) {
-      toast.error(e.message)
+      console.error('Virtual World fetch error:', e)
+      toast.error('Erreur lors du chargement du monde: ' + e.message)
     } finally {
       setLoading(false)
     }
@@ -90,13 +96,16 @@ export function VirtualWorldView() {
 
   // Initialize Phaser game
   useEffect(() => {
+    console.log('Phaser init check:', { loading, npcsLength: npcs.length, hasContainer: !!phaserContainerRef.current })
     if (loading || npcs.length === 0 || !phaserContainerRef.current) return
     if (gameRef.current) return // already initialized
 
     let destroyed = false
 
     // Dynamic import to avoid SSR issues
-    import('phaser').then((Phaser) => {
+    import('phaser').then((PhaserModule) => {
+      const Phaser = PhaserModule.default || PhaserModule
+      console.log('Phaser imported successfully')
       if (destroyed) return
 
       const nearbyCallbackRef = { current: (_npc: Npc | null) => {} }
@@ -145,6 +154,9 @@ export function VirtualWorldView() {
           // Fetch curricula from API to create zones dynamically
           const curriculaRes = await fetch('/api/curricula')
           const curriculaData = await curriculaRes.json()
+          
+          if (!this.sys || !this.add) return // Scene was destroyed while fetching
+          
           const userCurricula = curriculaData.curricula || []
 
           // Default zones if no curricula yet (show hints)
@@ -600,6 +612,9 @@ export function VirtualWorldView() {
       }
 
       const game = new Phaser.Game(config)
+      console.log('Phaser game created successfully')
+      
+      setGameReady(true)
 
       // Expose API to React
       gameRef.current = {
@@ -627,6 +642,9 @@ export function VirtualWorldView() {
       gameRef.current.setNearbyNpcCallback((npc) => {
         setNearbyNpc(npc)
       })
+    }).catch((err) => {
+      console.error('Phaser import/init error:', err)
+      toast.error('Erreur lors du chargement de Phaser: ' + err.message)
     })
 
     return () => {
@@ -634,6 +652,7 @@ export function VirtualWorldView() {
       if (gameRef.current) {
         gameRef.current.destroy()
         gameRef.current = null
+        setGameReady(false)
       }
     }
   }, [loading, npcs])
@@ -751,20 +770,41 @@ export function VirtualWorldView() {
       <div className="flex-1 flex overflow-hidden">
         {/* Phaser game area */}
         <div className="flex-1 relative overflow-hidden bg-zinc-950 flex items-center justify-center p-4">
+          <div className="absolute top-2 left-2 text-[9px] text-zinc-600 bg-zinc-900/50 px-2 py-1 rounded font-mono">
+            loading:{loading ? 'Y' : 'N'} npcs:{npcs.length} ref:{'✓'} game:{ gameRef.current ? 'Y' : 'N'}
+          </div>
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-6 h-6 animate-spin text-emerald-400 mb-3" />
+              <p className="text-xs text-zinc-500">Chargement des habitants...</p>
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative w-full h-full flex items-center justify-center">
               <div
                 ref={phaserContainerRef}
-                className="border border-zinc-800 rounded-lg overflow-hidden"
-                style={{ width: GAME_W, height: GAME_H, maxWidth: '100%' }}
+                className="border border-zinc-800 rounded-lg overflow-hidden shadow-2xl bg-black"
+                style={{ 
+                  width: GAME_W, 
+                  height: GAME_H, 
+                  maxWidth: 'calc(100% - 2rem)',
+                  maxHeight: 'calc(100% - 2rem)',
+                  minWidth: '500px',
+                  minHeight: '300px',
+                }}
               />
 
+              {/* Fallback if Phaser didn't load */}
+              {!gameReady && !loading && npcs.length > 0 && (
+                <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/80 backdrop-blur">
+                  <div className="text-center">
+                    <p className="text-xs text-zinc-500 mb-2">Initialisation du monde 2D...</p>
+                    <Loader2 className="w-4 h-4 animate-spin text-emerald-400 mx-auto" />
+                  </div>
+                </div>
+              )}
+
               {/* Interaction prompt */}
-              {nearbyNpc && !activeNpc && (
+              {gameRef.current && nearbyNpc && !activeNpc && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-zinc-900 border border-emerald-500/40 text-sm flex items-center gap-2 shadow-lg z-10">
                   <MessageCircle className="w-4 h-4 text-emerald-400" />
                   <span className="text-zinc-200">
@@ -780,7 +820,7 @@ export function VirtualWorldView() {
               )}
 
               {/* Click hint */}
-              {!nearbyNpc && !activeNpc && (
+              {gameRef.current && !nearbyNpc && !activeNpc && (
                 <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-md bg-zinc-900/80 border border-zinc-800 text-[10px] text-zinc-500 backdrop-blur z-10">
                   Cliquez sur un personnage ou approchez-vous avec E
                 </div>

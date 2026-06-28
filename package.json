@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "kill-port": "powershell -ExecutionPolicy Bypass -File scripts/kill-port.ps1",
+    "dev:clean": "npm run kill-port && next dev -p 3000",
     "build": "next build && node scripts/postbuild.js",
     "start": "node .next/standalone/server.js",
     "lint": "eslint .",
