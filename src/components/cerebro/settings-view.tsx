@@ -28,7 +28,8 @@ export function SettingsView() {
   const [resetting, setResetting] = useState(false)
   const [exporting, setExporting] = useState(false)
   
-  const [provider, setProvider] = useState<'zai' | 'openai' | 'openrouter' | 'custom'>('zai')
+  const [dropdownProvider, setDropdownProvider] = useState<'zai' | 'openai' | 'openrouter' | 'custom'>('zai')
+  const [customProviderName, setCustomProviderName] = useState('custom')
   const [apiKey, setApiKey] = useState('')
   const [baseUrl, setBaseUrl] = useState('')
   const [model, setModel] = useState('')
@@ -41,7 +42,13 @@ export function SettingsView() {
         const res = await fetch('/api/settings/ai')
         const data = await res.json()
         if (data.config) {
-          setProvider(data.config.provider)
+          const prov = data.config.provider
+          if (prov === 'zai' || prov === 'openai' || prov === 'openrouter') {
+            setDropdownProvider(prov)
+          } else {
+            setDropdownProvider('custom')
+            setCustomProviderName(prov)
+          }
           setApiKey(data.config.apiKey)
           setBaseUrl(data.config.baseUrl)
           setModel(data.config.model)
@@ -59,10 +66,11 @@ export function SettingsView() {
     e.preventDefault()
     setSaving(true)
     try {
+      const finalProvider = dropdownProvider === 'custom' ? customProviderName : dropdownProvider
       const res = await fetch('/api/settings/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, apiKey, baseUrl, model }),
+        body: JSON.stringify({ provider: finalProvider, apiKey, baseUrl, model }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -179,10 +187,10 @@ export function SettingsView() {
             <div>
               <label className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">Provider</label>
               <select
-                value={provider}
+                value={dropdownProvider}
                 onChange={(e) => {
                   const val = e.target.value as any
-                  setProvider(val)
+                  setDropdownProvider(val)
                   if (val === 'zai') {
                     setBaseUrl('https://internal-api.z.ai/v1')
                     setModel('glm-4.6')
@@ -192,6 +200,10 @@ export function SettingsView() {
                   } else if (val === 'openrouter') {
                     setBaseUrl('https://openrouter.ai/api/v1')
                     setModel('google/gemini-2.5-flash')
+                  } else if (val === 'custom') {
+                    setBaseUrl('')
+                    setModel('')
+                    setCustomProviderName('custom')
                   }
                 }}
                 className="mt-1 w-full px-3 py-2 rounded-lg bg-zinc-950 border border-white/10 text-sm text-zinc-200 focus:outline-none focus:border-purple-500 transition-colors"
@@ -202,6 +214,20 @@ export function SettingsView() {
                 <option value="custom">Custom (Compatible OpenAI)</option>
               </select>
             </div>
+
+            {dropdownProvider === 'custom' && (
+              <div>
+                <label className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">Identifiant du Provider Custom</label>
+                <input
+                  type="text"
+                  placeholder="e.g. groq, together, mistral"
+                  value={customProviderName}
+                  onChange={(e) => setCustomProviderName(e.target.value)}
+                  className="mt-1 w-full px-3 py-2 rounded-lg bg-zinc-950 border border-white/10 text-sm text-zinc-200 focus:outline-none focus:border-purple-500 transition-colors font-mono"
+                  required
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -229,7 +255,7 @@ export function SettingsView() {
               </div>
             </div>
 
-            {provider === 'custom' || provider === 'openrouter' ? (
+            {dropdownProvider === 'custom' || dropdownProvider === 'openrouter' ? (
               <div>
                 <label className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">Base URL de l'API</label>
                 <input
@@ -246,7 +272,7 @@ export function SettingsView() {
             <div className="flex items-center justify-between pt-2">
               <div className="flex items-center gap-2 text-xs text-zinc-500">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                <span>Les paramètres sont sauvegardés localement dans .z-ai-config</span>
+                <span>Les paramètres sont sauvegardés dans des cookies sécurisés et localement</span>
               </div>
               
               <Button

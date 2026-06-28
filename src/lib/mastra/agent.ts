@@ -4,20 +4,11 @@
 import { Mastra } from '@mastra/core'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
-import fs from 'fs'
-import path from 'path'
+import { getAIConfig } from '../ai'
 
-// Fallback: use dynamic configuration from .z-ai-config
-function getModel() {
-  let config: any = {}
-  try {
-    const filePath = path.join(process.cwd(), '.z-ai-config')
-    if (fs.existsSync(filePath)) {
-      config = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
-    }
-  } catch (e) {
-    console.error('Failed to read config in mastra agent:', e)
-  }
+// Fallback: use dynamic configuration from .z-ai-config or cookies
+async function getModel() {
+  const config = await getAIConfig()
 
   const provider = config.provider || 'zai'
   const apiKey = config.apiKey || process.env.ZAI_API_KEY || 'zai-default'
@@ -45,7 +36,7 @@ function getModel() {
 export const mastra = new Mastra({})
 
 // Helper: create or retrieve an agent-mémoire for a given curriculum
-export function createMemoryAgent(opts: {
+export async function createMemoryAgent(opts: {
   agentId: string
   agentName: string
   persona: string
@@ -84,7 +75,7 @@ Utilise-le pour maintenir la continuité et te souvenir de ce qui a déjà été
   return {
     agentId,
     systemPrompt,
-    model: getModel(),
+    model: await getModel(),
   }
 }
 

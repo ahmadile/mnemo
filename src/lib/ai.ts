@@ -1,8 +1,9 @@
 import fs from 'fs/promises'
 import path from 'path'
+import { cookies } from 'next/headers'
 
 export interface AIConfig {
-  provider: 'zai' | 'openai' | 'openrouter' | 'custom'
+  provider: string
   apiKey: string
   baseUrl: string
   model: string
@@ -16,6 +17,24 @@ const DEFAULT_CONFIG: AIConfig = {
 }
 
 export async function getAIConfig(): Promise<AIConfig> {
+  // 1. Try reading from cookies first (useful for Vercel/serverless)
+  try {
+    const cookieStore = await cookies()
+    const cookie = cookieStore.get('z-ai-config')
+    if (cookie?.value) {
+      const config = JSON.parse(cookie.value)
+      return {
+        provider: config.provider || 'zai',
+        apiKey: config.apiKey || 'zai-default',
+        baseUrl: config.baseUrl || 'https://internal-api.z.ai/v1',
+        model: config.model || 'glm-4.6',
+      }
+    }
+  } catch (error) {
+    // cookies() might throw if called outside request context (e.g. during build)
+  }
+
+  // 2. Try reading from file (local fallback)
   try {
     const filePath = path.join(process.cwd(), '.z-ai-config')
     const fileContent = await fs.readFile(filePath, 'utf-8')
@@ -27,13 +46,37 @@ export async function getAIConfig(): Promise<AIConfig> {
       model: config.model || 'glm-4.6',
     }
   } catch (error) {
-    return DEFAULT_CONFIG
+    // If file doesn't exist, use environment variables or default config
+    return {
+      provider: (process.env.AI_PROVIDER as any) || DEFAULT_CONFIG.provider,
+      apiKey: process.env.AI_API_KEY || DEFAULT_CONFIG.apiKey,
+      baseUrl: process.env.AI_BASE_URL || DEFAULT_CONFIG.baseUrl,
+      model: process.env.AI_MODEL || DEFAULT_CONFIG.model,
+    }
   }
 }
 
 export async function saveAIConfig(config: AIConfig): Promise<void> {
-  const filePath = path.join(process.cwd(), '.z-ai-config')
-  await fs.writeFile(filePath, JSON.stringify(config, null, 2), 'utf-8')
+  // 1. Try to set cookie
+  try {
+    const cookieStore = await cookies()
+    cookieStore.set('z-ai-config', JSON.stringify(config), {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+    })
+  } catch (error) {
+    console.warn('Failed to save config to cookies:', error)
+  }
+
+  // 2. Try to save to file (local development)
+  try {
+    const filePath = path.join(process.cwd(), '.z-ai-config')
+    await fs.writeFile(filePath, JSON.stringify(config, null, 2), 'utf-8')
+  } catch (error) {
+    console.warn('Failed to save config to file (expected in read-only environments like Vercel):', error)
+  }
 }
 
 export async function generateChatCompletion(
@@ -64,7 +107,7 @@ export async function generateChatCompletion(
   }
 
   if (options.jsonMode) {
-    if (provider === 'openai' || provider === 'openrouter' || provider === 'custom') {
+    if (provider !== 'zai') {
       body.response_format = { type: 'json_object' }
     }
   }

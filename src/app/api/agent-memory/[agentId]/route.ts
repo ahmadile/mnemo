@@ -97,7 +97,7 @@ Utilise-le pour maintenir la continuité et te souvenir des discussions précéd
     // Call LLM via AI SDK (Mastra-style)
     let agentResponse: string
     try {
-      const model = getModel()
+      const model = await getModel()
       const result = await generateText({
         model,
         messages: llmMessages,
