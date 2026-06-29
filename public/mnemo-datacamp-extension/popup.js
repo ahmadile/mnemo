@@ -1,8 +1,10 @@
-// Mnemo DataCamp Bridge v1.3.1 — popup script
-// Fixes:
-//   - Language detection now scoped to course title only (no more false "SQL" from sidebar)
-//   - Chapter detection scoped to main content (no more "APPRENTISSAGE" from menu)
-//   - Scrapes completed courses (green checkmarks) and sends progress to Mnemo
+// Mnemo DataCamp Bridge v2.0.0 — popup script
+// v2.0.0:
+//   - Scrapes full hierarchy: Cursus → Cours → Chapitres → Séquences/Exercices
+//   - Displays chapters list on course pages, courses list on curriculum pages
+//   - Supports classroom.datacamp.com exercise pages with exercise/chapter detection
+//   - Sends chapters, courses, chapterTitle, exerciseTitle to Mnemo backend
+//   - Creates parent/child curriculum relationships automatically
 
 const statusDot = document.getElementById('statusDot')
 const statusText = document.getElementById('statusText')
@@ -20,6 +22,7 @@ const toast = document.getElementById('toast')
 const dcCourseTitle = document.getElementById('dcCourseTitle')
 const dcCurriculumTitle = document.getElementById('dcCurriculumTitle')
 const dcMeta = document.getElementById('dcMeta')
+const dcHierarchyList = document.getElementById('dcHierarchyList')
 
 let detectedContext = null
 
@@ -152,6 +155,15 @@ async function detectDataCampContext(tabId) {
       chip.textContent = '📖 ' + detectedContext.chapterTitle.slice(0, 30)
       dcMeta.appendChild(chip)
     }
+    if (detectedContext.exerciseTitle) {
+      const chip = document.createElement('span')
+      chip.className = 'chip'
+      chip.style.background = 'rgba(236,72,153,0.15)'
+      chip.style.color = '#fbcfe8'
+      chip.style.borderColor = 'rgba(236,72,153,0.3)'
+      chip.textContent = '🎯 ' + detectedContext.exerciseTitle.slice(0, 30)
+      dcMeta.appendChild(chip)
+    }
 
     // Show progress info if we scraped completed courses
     if (detectedContext.completedCourses && detectedContext.completedCourses.length > 0) {
@@ -172,6 +184,41 @@ async function detectDataCampContext(tabId) {
       chip.style.borderColor = 'rgba(59,130,246,0.3)'
       chip.textContent = `📊 ${detectedContext.progress}% sur DataCamp`
       dcMeta.appendChild(chip)
+    }
+
+    // Render hierarchy list
+    dcHierarchyList.innerHTML = ''
+    dcHierarchyList.style.display = 'none'
+
+    if (detectedContext.pageType === 'curriculum' && detectedContext.courses && detectedContext.courses.length > 0) {
+      dcHierarchyList.style.display = 'block'
+      dcHierarchyList.innerHTML = `
+        <div style="font-weight: 600; margin-bottom: 4px; color: #e4e4e7; font-size: 11px;">📚 Cours du Cursus (${detectedContext.courses.length}) :</div>
+        <ul style="list-style: none; padding-left: 0; max-height: 120px; overflow-y: auto;">
+          ${detectedContext.courses.map((c, i) => `<li style="margin-bottom: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 10px; color: #a1a1aa;">${i + 1}. ${c}</li>`).join('')}
+        </ul>
+      `
+    } else if (detectedContext.pageType === 'course' && detectedContext.chapters && detectedContext.chapters.length > 0) {
+      dcHierarchyList.style.display = 'block'
+      dcHierarchyList.innerHTML = `
+        <div style="font-weight: 600; margin-bottom: 4px; color: #e4e4e7; font-size: 11px;">📖 Chapitres du Cours (${detectedContext.chapters.length}) :</div>
+        <ul style="list-style: none; padding-left: 0; max-height: 120px; overflow-y: auto;">
+          ${detectedContext.chapters.map((ch, i) => `<li style="margin-bottom: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 10px; color: #a1a1aa;">${i + 1}. ${ch}</li>`).join('')}
+        </ul>
+      `
+    } else if (detectedContext.pageType === 'exercise') {
+      dcHierarchyList.style.display = 'block'
+      dcHierarchyList.innerHTML = `
+        <div style="font-weight: 600; margin-bottom: 4px; color: #e4e4e7; font-size: 11px;">🎯 Exercice Actif :</div>
+        <div style="color: #fbcfe8; font-family: monospace; font-size: 12px; font-weight: bold; padding: 6px 8px; background: rgba(236,72,153,0.1); border-radius: 4px; border: 1px solid rgba(236,72,153,0.2);">
+          ${detectedContext.exerciseTitle || 'Non détecté'}
+        </div>
+        ${detectedContext.chapterTitle ? `
+          <div style="margin-top: 6px; font-size: 10px; color: #71717a;">
+            Chapitre : <span style="color: #d8b4fe; font-weight: 600;">${detectedContext.chapterTitle}</span>
+          </div>
+        ` : ''}
+      `
     }
   } catch (e) {
     console.error('[Mnemo] detect error:', e)
@@ -206,6 +253,8 @@ captureBtn.addEventListener('click', async () => {
         detectedLanguage: detectedContext.detectedLanguage,
         completedCourses: detectedContext.completedCourses || [],
         progress: detectedContext.progress || 0,
+        courses: detectedContext.courses || [],
+        chapters: detectedContext.chapters || [],
       }),
     })
     const detectData = await detectRes.json()
@@ -242,6 +291,8 @@ captureBtn.addEventListener('click', async () => {
         curriculumId,
         courseContent: content,
         courseLink: detectedContext.url,
+        chapterTitle: detectedContext.chapterTitle,
+        exerciseTitle: detectedContext.exerciseTitle,
       }),
     })
     const missionData = await missionRes.json()
@@ -279,7 +330,6 @@ function extractDataCampContext() {
   const url = window.location.href
 
   // --- STEP 1: Find the MAIN content area (exclude sidebar/nav) ---
-  // DataCamp's main content is in <main> or [role="main"] or specific containers
   const mainEl = document.querySelector('main') ||
                  document.querySelector('[role="main"]') ||
                  document.querySelector('[class*="main__content"]') ||
@@ -289,30 +339,62 @@ function extractDataCampContext() {
   let pageType = 'unknown'
   if (url.includes('/learn/courses/')) pageType = 'course'
   if (url.includes('/learn/career-tracks/') || url.includes('/learn/skill-tracks/')) pageType = 'curriculum'
-  if (mainEl.querySelector('[class*="WorkspaceBody"], [class*="exercise__content"], [class*="ExerciseSlide"]')) {
+  if (url.includes('classroom.datacamp.com') || mainEl.querySelector('[class*="WorkspaceBody"], [class*="exercise__content"], [class*="ExerciseSlide"]')) {
     pageType = 'exercise'
   }
 
-  // --- STEP 3: Course title — scoped to MAIN content only ---
+  // --- STEP 3: Course title & Exercise title ---
   let courseTitle = ''
-  const mainH1 = mainEl.querySelector('h1')
-  if (mainH1 && mainH1.innerText.trim()) {
-    courseTitle = mainH1.innerText.trim()
-  }
-  // Fallback: page title (cleaned)
-  if (!courseTitle || courseTitle.length < 3) {
-    courseTitle = document.title.replace(/\s*[-|]\s*DataCamp.*$/i, '').trim() || 'Cours DataCamp'
+  let exerciseTitle = ''
+  let chapterTitle = ''
+
+  if (pageType === 'exercise') {
+    // For classroom.datacamp.com, split document.title (format: "Exercise Name | Course Name | DataCamp")
+    const titleParts = document.title.split('|').map(p => p.trim())
+    if (titleParts.length >= 2) {
+      exerciseTitle = titleParts[0]
+      courseTitle = titleParts[1]
+    } else {
+      exerciseTitle = titleParts[0]
+    }
+
+    // Try to get exercise title from DOM
+    if (!exerciseTitle) {
+      const exerciseEl = document.querySelector('[class*="ExerciseTitle"], [class*="exercise-title"], h1, h2, h3, h4, h5')
+      if (exerciseEl) exerciseTitle = exerciseEl.innerText.trim()
+    }
+
+    // Try to get course title from DOM link
+    if (!courseTitle || courseTitle.length < 3) {
+      const courseEl = document.querySelector('[class*="courseTitle"], [class*="CourseTitle"], [class*="course-title"], a[href*="/courses/"]')
+      if (courseEl) courseTitle = courseEl.innerText.trim()
+    }
+
+    // Try to get chapter title
+    const chapterEl = document.querySelector(
+      '[class*="ChapterTitle"], [class*="chapter__title"], [data-testid="chapter-title"], [class*="chapterTitle"], [class*="chapter-name"]'
+    )
+    if (chapterEl && chapterEl.innerText.trim()) {
+      chapterTitle = chapterEl.innerText.trim().slice(0, 80)
+    }
+  } else {
+    // For standard course/curriculum pages
+    const mainH1 = mainEl.querySelector('h1')
+    if (mainH1 && mainH1.innerText.trim()) {
+      courseTitle = mainH1.innerText.trim()
+    }
+    if (!courseTitle || courseTitle.length < 3) {
+      courseTitle = document.title.replace(/\s*[-|]\s*DataCamp.*$/i, '').trim() || 'Cours DataCamp'
+    }
   }
 
-  // --- STEP 4: Curriculum title — look for "CURSUS PROFESSIONNEL" or "CURSUS DE COMPÉTENCES" ---
+  // --- STEP 4: Curriculum title ---
   let curriculumTitle = ''
-  // Strategy A: Find the label text near the title
   const allMainText = mainEl.innerText || ''
   const cursusMatch = allMainText.match(/CURSUS\s+(PROFESSIONNEL|DE COMP[ÉE]TENCES)\s*\n([^\n]+)/i)
   if (cursusMatch && cursusMatch[2]) {
     curriculumTitle = cursusMatch[2].trim()
   }
-  // Strategy B: Look for a "track header" element
   if (!curriculumTitle) {
     const trackH = mainEl.querySelector('[class*="TrackHeader__title"], [class*="careerTrack"]')
     if (trackH && trackH.innerText.trim().length > 3) {
@@ -320,11 +402,8 @@ function extractDataCampContext() {
     }
   }
 
-  // --- STEP 5: Chapter title — scoped to exercise context only ---
-  // IMPORTANT: Only look for chapter if we're on an exercise page,
-  // otherwise we'd pick up random h2 from the sidebar/menu
-  let chapterTitle = ''
-  if (pageType === 'exercise') {
+  // --- STEP 5: Chapter title fallback ---
+  if (!chapterTitle && pageType === 'exercise') {
     const chapterEl = mainEl.querySelector(
       '[class*="ChapterTitle"], [class*="chapter__title"], [data-testid="chapter-title"]'
     )
@@ -333,10 +412,9 @@ function extractDataCampContext() {
     }
   }
 
-  // --- STEP 6: Language detection — scoped to TITLES ONLY, not full page ---
-  // Bug fix: previously scanned full body text which matched "SQL" in the sidebar menu
-  const titleText = `${courseTitle} ${curriculumTitle}`.toLowerCase()
-  let detectedLanguage = 'python' // default
+  // --- STEP 6: Language detection ---
+  const titleText = `${courseTitle} ${curriculumTitle} ${url}`.toLowerCase()
+  let detectedLanguage = 'python'
   if (/\bsql\b/.test(titleText) || titleText.includes('postgres') || titleText.includes('mysql')) {
     detectedLanguage = 'sql'
   } else if (/\br\b/.test(titleText) || titleText.includes('tidyverse') || titleText.includes('rstudio')) {
@@ -350,23 +428,16 @@ function extractDataCampContext() {
   }
 
   // --- STEP 7: Scrape completed courses (green checkmarks) ---
-  // DataCamp shows completed courses with a green checkmark icon
-  // We look for course list items that have a "completed" indicator
   const completedCourses = []
-  // Strategy A: find all course links and check for adjacent green checkmark
   const courseLinks = mainEl.querySelectorAll('a[href*="/learn/courses/"]')
   courseLinks.forEach((link) => {
     const href = link.getAttribute('href') || ''
-    // Skip if it's the current course page itself
     if (href === window.location.pathname) return
-    // Look for a checkmark icon near this link
     const parent = link.closest('li, div, article, [class*="course"]')
     if (!parent) return
-    // DataCamp uses SVG checkmarks or specific class names for completed state
     const hasCheckmark = parent.querySelector(
       'svg[class*="check"], [class*="completed"], [class*="Completed"], [data-testid*="completed"]'
     )
-    // Or look for a green-colored element
     const greenEl = parent.querySelector('[style*="color: rgb(51, 170, 51)"], [class*="success"]')
     if (hasCheckmark || greenEl) {
       const title = link.innerText.trim() || link.querySelector('h3, h4')?.innerText?.trim() || ''
@@ -376,12 +447,10 @@ function extractDataCampContext() {
     }
   })
 
-  // Strategy B: Look for elements with "Terminé" text (French DataCamp) or "Completed" (English)
   const allCompletedLabels = mainEl.querySelectorAll('[class*="completed"], [class*="Completed"]')
   allCompletedLabels.forEach((el) => {
     const text = el.innerText?.trim()
     if (text && (text === 'Terminé' || text === 'Completed' || text.includes('✓'))) {
-      // Find the nearest course title
       const container = el.closest('li, div, article, [class*="course"]')
       if (container) {
         const titleEl = container.querySelector('h3, h4, [class*="title"]')
@@ -396,13 +465,11 @@ function extractDataCampContext() {
   })
 
   // --- STEP 8: Extract progress percentage ---
-  // DataCamp shows "PROGRÈS DU CURSUS 38%" with a progress bar
   let progress = 0
   const progressMatch = allMainText.match(/PROGR[ÈE]S\s+DU\s+CURSUS\s*\n?\s*(\d{1,3})\s*%/i)
   if (progressMatch && progressMatch[1]) {
     progress = parseInt(progressMatch[1], 10)
   }
-  // Alternative: look for an aria-valuenow on a progressbar
   if (progress === 0) {
     const progressBar = mainEl.querySelector('[role="progressbar"], [class*="ProgressBar"]')
     if (progressBar) {
@@ -411,15 +478,40 @@ function extractDataCampContext() {
     }
   }
 
+  // --- STEP 9: Scrape chapters list if on course page or courses list if on curriculum page ---
+  const chapters = []
+  const courses = []
+
+  if (pageType === 'course') {
+    const chapterEls = mainEl.querySelectorAll('[class*="ChapterTitle"], [class*="chapter__title"], [class*="ChapterCard__title"], h3, h4')
+    chapterEls.forEach((el) => {
+      const text = el.innerText.trim()
+      if (text && text.length > 3 && text.length < 80 && !text.includes('PROGRÈS') && !text.includes('CURSUS') && !text.includes(courseTitle)) {
+        if (!chapters.includes(text)) chapters.push(text)
+      }
+    })
+  } else if (pageType === 'curriculum') {
+    const courseEls = mainEl.querySelectorAll('a[href*="/learn/courses/"], [class*="CourseCard__title"], [class*="course-title"]')
+    courseEls.forEach((el) => {
+      const text = el.innerText.trim()
+      if (text && text.length > 3 && text.length < 100) {
+        if (!courses.includes(text)) courses.push(text)
+      }
+    })
+  }
+
   return {
     url,
     courseTitle,
     curriculumTitle,
     chapterTitle,
+    exerciseTitle,
     pageType,
     detectedLanguage,
     completedCourses: completedCourses.slice(0, 20),
     progress,
+    chapters,
+    courses,
   }
 }
 

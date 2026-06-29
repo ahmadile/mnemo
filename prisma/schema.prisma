@@ -25,6 +25,9 @@ model Curriculum {
   datacampUrl        String?
   datacampProgress   Int      @default(0) // 0-100 percentage completed on DataCamp
   completedCourses   String   @default("[]") // JSON array of {title, url, completedAt}
+  parentId           String?
+  parent             Curriculum? @relation("CurriculumParentChild", fields: [parentId], references: [id], onDelete: SetNull)
+  children           Curriculum[] @relation("CurriculumParentChild")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   missions    Mission[]
@@ -45,6 +48,9 @@ model Mission {
   status        String   @default("active") // active | completed
   sourceContent String   @default("")
   language      String   @default("python")
+  // DataCamp context: which chapter/exercise this mission was generated from
+  chapterTitle  String   @default("")
+  exerciseTitle String   @default("")
   // Spaced repetition fields (ts-fsrs algorithm)
   nextReviewAt  DateTime?  // When this mission should be reviewed next
   reviewCount   Int      @default(0)  // Number of times reviewed

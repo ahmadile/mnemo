@@ -3,10 +3,10 @@ import { db } from '@/lib/db'
 import { generateChatCompletion } from '@/lib/ai'
 
 // POST /api/missions - generate a new mission from course content
-// Body: { curriculumId: string, courseContent: string, courseLink?: string }
+// Body: { curriculumId: string, courseContent: string, courseLink?: string, chapterTitle?: string, exerciseTitle?: string }
 export async function POST(req: NextRequest) {
   try {
-    const { curriculumId, courseContent, courseLink } = await req.json()
+    const { curriculumId, courseContent, courseLink, chapterTitle, exerciseTitle } = await req.json()
 
     if (!curriculumId || !courseContent || courseContent.trim().length < 10) {
       return NextResponse.json(
@@ -23,11 +23,16 @@ export async function POST(req: NextRequest) {
     const languageMap: Record<string, string> = {
       python: 'Python',
       sql: 'SQL',
+      javascript: 'JavaScript',
+      r: 'R',
+      shell: 'Shell',
+      java: 'Java',
       'ai-engineering': 'Python',
       'data-science': 'Python',
       'web-dev': 'JavaScript',
     }
-    const language = languageMap[curriculum.domain] || 'Python'
+    const dbLang = curriculum.language ? curriculum.language.toLowerCase() : ''
+    const language = languageMap[dbLang] || languageMap[curriculum.domain] || 'Python'
 
     const systemPrompt = `Tu es "Le Donneur de Mission", un agent mystérieux style GTA qui briefe les recrues.
 Tu crées des missions de codage IMMERSIVES, narratives, qui ancrent les connaissances.
@@ -45,7 +50,7 @@ Tu DOIS répondre en JSON valide uniquement, avec cette structure exacte :
 }
 
 Règles:
-- Les objectifs doivent tester SPÉCIFIQUEMENT les notions du cours soumis
+- Les objectifs doivent tester SPÉCIFIQUEMENT les notions du cours soumis. Si le chapitre et l'exercice/séquence sont indiqués, cible précisément les concepts de cet exercice en priorité.
 - Le code de départ doit être minimal (juste la structure)
 - Pas de solution complète dans le starter code
 - Réponds en français, format JSON strict, sans markdown autour`
@@ -53,13 +58,15 @@ Règles:
     const userPrompt = `Cursus: ${curriculum.name} (${curriculum.domain})
 Langage de code attendu: ${language}
 ${courseLink ? `Lien du cours: ${courseLink}` : ''}
+${chapterTitle ? `Chapitre: ${chapterTitle}` : ''}
+${exerciseTitle ? `Séquence/Exercice: ${exerciseTitle}` : ''}
 
-Contenu du cours que l'utilisateur vient de réviser:
+Contenu du cours/exercice que l'utilisateur vient de réviser:
 ---
 ${courseContent}
 ---
 
-Génère une mission de codage ${language} qui teste exactement les notions vues dans ce cours.`
+Génère une mission de codage ${language} qui teste exactement les notions vues dans ce cours, et plus particulièrement dans l'exercice/séquence "${exerciseTitle || 'indiqué'}".`
 
     let rawResponse = await generateChatCompletion([
       { role: 'assistant', content: systemPrompt },
@@ -99,6 +106,8 @@ Génère une mission de codage ${language} qui teste exactement les notions vues
         difficulty: missionData.difficulty,
         language,
         sourceContent: courseContent,
+        chapterTitle: chapterTitle || '',
+        exerciseTitle: exerciseTitle || '',
         xp: missionData.difficulty === 'elite' ? 300 : missionData.difficulty === 'pro' ? 200 : 100,
       },
     })

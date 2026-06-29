@@ -8,9 +8,13 @@ export async function GET() {
       include: {
         missions: {
           orderBy: { createdAt: 'desc' },
-          select: { id: true, title: true, status: true, difficulty: true, xp: true },
+          select: { id: true, title: true, status: true, difficulty: true, xp: true, chapterTitle: true, exerciseTitle: true },
         },
         agent: { select: { id: true, name: true, level: true, status: true, activity: true } },
+        children: {
+          select: { id: true, name: true, domain: true, color: true, icon: true, xp: true, level: true, datacampProgress: true },
+          orderBy: { name: 'asc' },
+        },
       },
       orderBy: { name: 'asc' },
     })
